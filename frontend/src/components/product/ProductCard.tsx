@@ -15,6 +15,7 @@ export interface ProductItem {
   availableColors?: Array<{ name: string; hex: string }> | null;
   images: string[];
   category: { id: string; name: string; slug: string };
+  isSpecial?: boolean;
 }
 
 interface ProductCardProps {
@@ -43,7 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className = '
   return (
     <div
       onClick={handleCardClick}
-      className={`chassis-card flex flex-col justify-between overflow-hidden group cursor-pointer hover:border-nitro-amber/60 hover:shadow-nitro-sm transition-all select-none ${className}`}
+      className={`chassis-card flex flex-col justify-between overflow-hidden group cursor-pointer hover:border-nitro-amber/60 hover:shadow-nitro-sm transition-all select-none min-w-[270px] ${className}`}
     >
       <div>
         {/* Product Visual Surface */}
@@ -55,14 +56,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className = '
             loading="lazy"
           />
 
-          {/* Out of Stock Tag ONLY (no 'how much left' counters) */}
-          {isOutOfStock && (
-            <div className="absolute top-2.5 left-2.5">
+          {/* Badges Overlay */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 items-start">
+            {product.isSpecial && (
+              <span className="telemetry-tag border-nitro-amber/60 bg-pitch-obsidian/90 text-nitro-amber font-bold shadow-nitro-sm">
+                SPECIAL
+              </span>
+            )}
+            {isOutOfStock && (
               <span className="telemetry-tag border-red-500/50 bg-red-950/80 text-red-400 font-bold">
                 OUT OF STOCK
               </span>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Category Tag */}
           <div className="absolute top-2.5 right-2.5">

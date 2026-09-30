@@ -24,6 +24,7 @@ export const HomePage: React.FC = () => {
   usePageTitle('Precision RC & High-Torque Gear', 'Bangladesh D2C Storefront');
 
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [specialProducts, setSpecialProducts] = useState<ProductItem[]>([]);
   const [newArrivals, setNewArrivals] = useState<ProductItem[]>([]);
   const [bestsellers, setBestsellers] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,8 @@ export const HomePage: React.FC = () => {
         const prodData = await prodRes.json();
         if (prodData.success) {
           const prods: ProductItem[] = prodData.products;
+          // Filter special products
+          setSpecialProducts(prods.filter((p) => p.isSpecial));
           // Sort for new arrivals (latest created)
           setNewArrivals(prods.slice(0, 4));
           // Most selling / featured items
@@ -66,19 +69,19 @@ export const HomePage: React.FC = () => {
         <section className="border-b border-fastener-border relative overflow-hidden bg-gradient-to-b from-carbon-slate via-carbon-slate/75 to-pitch-obsidian py-16 sm:py-24 px-4 sm:px-6">
           <HeroMotionBackground />
 
-          <div className="max-w-6xl mx-auto text-center relative z-10">
-            <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight max-w-4xl mx-auto mb-4">
+          <div className="max-w-6xl mx-auto text-left relative z-10">
+            <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight max-w-4xl mb-4">
               CHISELED HARDWARE &bull;{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber via-yellow-400 to-nitro-orange">
                 BRUSHLESS SPEED
               </span>
             </h1>
 
-            <p className="text-machined-muted text-xs sm:text-base max-w-2xl mx-auto font-normal leading-relaxed mb-8">
+            <p className="text-machined-muted text-xs sm:text-base max-w-2xl font-normal leading-relaxed mb-8">
               Precision gyro-assisted 1:16 drift chassis, high-clearance 4x4 trail crawlers, and CNC machined mechanical engine desk sculptures. Nationwide Cash on Delivery across Bangladesh.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-4">
+            <div className="flex flex-wrap items-center justify-start gap-4">
               <Link
                 to="/products"
                 className="nitro-btn text-xs py-3.5 px-7 flex items-center gap-2 shadow-nitro"
@@ -95,35 +98,34 @@ export const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* CATEGORY HOP BAR */}
-        {categories.length > 0 && (
-          <section className="border-b border-fastener-border bg-carbon-slate/50 px-4 sm:px-6 py-4">
-            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs font-orbitron font-bold uppercase text-machined-muted whitespace-nowrap">
-                <span>Quick Hop:</span>
+        {/* SECTION 1: SPECIAL ITEMS */}
+        {specialProducts.length > 0 && (
+          <section id="special-items" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+            <div className="flex items-end justify-between mb-8 pb-4 border-b border-fastener-border">
+              <div>
+                <h2 className="font-orbitron font-black text-xl sm:text-2xl text-machined-titanium uppercase tracking-wide flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber shadow-nitro-sm animate-pulse" />
+                  Special Items
+                </h2>
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar font-orbitron text-xs">
-                <Link
-                  to="/products"
-                  className="px-3 py-1.5 rounded-lg border border-fastener-border bg-carbon-card text-machined-silver hover:border-nitro-amber whitespace-nowrap"
-                >
-                  All Gear
-                </Link>
-                {categories.map((c) => (
-                  <Link
-                    key={c.id}
-                    to={`/products?categoryId=${c.id}`}
-                    className="px-3 py-1.5 rounded-lg border border-fastener-border bg-carbon-card text-machined-silver hover:border-nitro-amber whitespace-nowrap"
-                  >
-                    {c.name}
-                  </Link>
-                ))}
-              </div>
+              <Link
+                to="/products"
+                className="font-orbitron text-xs font-bold text-nitro-amber hover:underline flex items-center gap-1.5"
+              >
+                <span>View All</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {specialProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
           </section>
         )}
 
-        {/* SECTION 1: NEW ARRIVALS */}
+        {/* SECTION 2: NEW ARRIVALS */}
         <section id="new-arrivals" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
           <div className="flex items-end justify-between mb-8 pb-4 border-b border-fastener-border">
             <div>
@@ -149,7 +151,7 @@ export const HomePage: React.FC = () => {
               No products found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {newArrivals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -184,7 +186,7 @@ export const HomePage: React.FC = () => {
                 No orders registered yet.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {bestsellers.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

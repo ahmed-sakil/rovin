@@ -27,6 +27,8 @@ import {
   Edit3,
   UserCheck,
   Camera,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -105,6 +107,7 @@ export const CustomerAccount: React.FC = () => {
   const [editDob, setEditDob] = useState(user?.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '');
   const [editAvatar, setEditAvatar] = useState(user?.profileImageUrl || '/assets/avatars/avatar-m1.svg');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -115,6 +118,62 @@ export const CustomerAccount: React.FC = () => {
       setEditAvatar(user.profileImageUrl || '/assets/avatars/avatar-m1.svg');
     }
   }, [user]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Strict 2MB size limit
+    const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+    if (file.size > MAX_SIZE) {
+      toast.error('File Exceeds 2MB Limit', {
+        description: `Your image is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum allowed avatar size is 2MB.`,
+      });
+      e.target.value = '';
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid Format', {
+        description: 'Please upload an image file (PNG, JPG, WebP, etc.).',
+      });
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/api/upload/single', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setEditAvatar(data.url);
+        toast.success('Photo Uploaded', {
+          description: `Avatar photo successfully processed (${data.metadata?.sizeFormatted || '2MB max verified'}).`,
+        });
+      } else {
+        toast.error('Upload Failed', {
+          description: data.message || 'Server rejected photo upload.',
+        });
+      }
+    } catch {
+      toast.error('Network Error', {
+        description: 'Failed to upload photo.',
+      });
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -702,17 +761,46 @@ export const CustomerAccount: React.FC = () => {
                       );
                     })}
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-mono uppercase text-machined-dim mb-1">
-                      Or Custom Image URL
+                  <div className="pt-2 border-t border-fastener-border">
+                    <label className="block text-xs font-mono uppercase text-machined-silver mb-2">
+                      Upload Custom Photo (Max 2MB)
                     </label>
-                    <input
-                      type="url"
-                      value={editAvatar}
-                      onChange={(e) => setEditAvatar(e.target.value)}
-                      placeholder="https://example.com/avatar.jpg"
-                      className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
-                    />
+                    <div className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-lg border border-dashed border-fastener-border bg-carbon-elevated/50">
+                      {/* Active Preview */}
+                      <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-nitro-amber bg-pitch-obsidian flex-shrink-0 shadow-chassis">
+                        <img
+                          src={editAvatar}
+                          alt="Avatar Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div className="flex-1 text-center sm:text-left">
+                        <label className="inline-flex items-center gap-2 cursor-pointer nitro-btn py-2 px-4 text-xs">
+                          {uploadingAvatar ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Choose Photo</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={uploadingAvatar}
+                            onChange={handleAvatarUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[11px] font-mono text-machined-dim mt-1.5">
+                          Supported formats: JPG, PNG, WEBP &bull; Max size: 2MB
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

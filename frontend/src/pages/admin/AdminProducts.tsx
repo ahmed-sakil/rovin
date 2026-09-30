@@ -40,6 +40,7 @@ interface Product {
   images: string[];
   isActive: boolean;
   featured: boolean;
+  isSpecial?: boolean;
   category: { id: string; name: string; slug: string };
   subcategory?: { id: string; name: string; slug: string };
 }
@@ -91,6 +92,7 @@ export const AdminProducts: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [featured, setFeatured] = useState(false);
+  const [isSpecial, setIsSpecial] = useState(false);
 
   // Fetch Products & Categories
   const fetchData = async () => {
@@ -164,6 +166,7 @@ export const AdminProducts: React.FC = () => {
     setImages(['https://images.unsplash.com/photo-1594787318286-3d835c1d207f?auto=format&fit=crop&w=800&q=80']);
     setIsActive(true);
     setFeatured(false);
+    setIsSpecial(false);
     setModalOpen(true);
   };
 
@@ -210,6 +213,7 @@ export const AdminProducts: React.FC = () => {
       images,
       isActive,
       featured,
+      isSpecial,
     };
 
     try {
@@ -360,7 +364,14 @@ export const AdminProducts: React.FC = () => {
 
                     {/* Title & Specs */}
                     <td className="py-3.5 px-4 max-w-xs">
-                      <p className="font-bold text-machined-titanium leading-snug line-clamp-1">{p.title}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-bold text-machined-titanium leading-snug line-clamp-1">{p.title}</p>
+                        {p.isSpecial && (
+                          <span className="telemetry-tag border-nitro-amber/60 bg-nitro-amber/15 text-nitro-amber text-[9px] font-bold">
+                            ★ SPECIAL
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-machined-dim line-clamp-1 font-mono mt-0.5">{p.description}</p>
                       {p.availableColors && p.availableColors.length > 0 && (
                         <div className="flex gap-1.5 mt-1.5">
@@ -456,6 +467,7 @@ export const AdminProducts: React.FC = () => {
                             setImages(p.images || []);
                             setIsActive(p.isActive);
                             setFeatured(p.featured);
+                            setIsSpecial(p.isSpecial || false);
                             setModalOpen(true);
                           }}
                           className="p-1.5 rounded hover:bg-carbon-slate text-machined-dim hover:text-nitro-amber"
@@ -703,6 +715,39 @@ export const AdminProducts: React.FC = () => {
                     setImages([url, ...images]);
                   }}
                 />
+              </div>
+
+              {/* Product Visibility & Feature Flags */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-fastener-border bg-carbon-slate/50 p-3 rounded-lg">
+                <label className="flex items-center gap-2 text-xs font-mono text-machined-silver cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="accent-nitro-amber w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span>Active SKU (Public)</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-xs font-mono text-nitro-amber cursor-pointer font-bold select-none">
+                  <input
+                    type="checkbox"
+                    checked={isSpecial}
+                    onChange={(e) => setIsSpecial(e.target.checked)}
+                    className="accent-nitro-amber w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span>Mark as Special Item</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-xs font-mono text-machined-silver cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={featured}
+                    onChange={(e) => setFeatured(e.target.checked)}
+                    className="accent-nitro-amber w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span>Featured Flagship</span>
+                </label>
               </div>
 
               {/* Submit Buttons */}

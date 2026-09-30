@@ -173,6 +173,7 @@ model Product {
   images             String[]     // Cloudinary image URLs
   isActive           Boolean      @default(true)
   featured           Boolean      @default(false)
+  isSpecial          Boolean      @default(false)
 
   reviews            Review[]
   orderItems         OrderItem[]

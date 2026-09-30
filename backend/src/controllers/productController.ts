@@ -22,6 +22,7 @@ const ProductSchema = z.object({
   images: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
   featured: z.boolean().default(false),
+  isSpecial: z.boolean().default(false),
 });
 
 export async function getProducts(req: Request, res: Response): Promise<void> {
@@ -33,6 +34,7 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       minPrice,
       maxPrice,
       inStock,
+      isSpecial,
       sort = 'newest',
       page = '1',
       limit = '50',
@@ -55,6 +57,10 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
 
     if (subcategoryId) {
       where.subcategoryId = String(subcategoryId);
+    }
+
+    if (isSpecial === 'true') {
+      where.isSpecial = true;
     }
 
     if (minPrice || maxPrice) {
@@ -172,6 +178,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       images,
       isActive,
       featured,
+      isSpecial,
     } = parsed.data;
 
     // Check duplicate SKU or Slug
@@ -210,6 +217,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
         images,
         isActive,
         featured,
+        isSpecial: isSpecial ?? false,
       },
       include: {
         category: true,
