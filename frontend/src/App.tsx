@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthModal } from './components/auth/AuthModal';
 import { toast } from 'sonner';
-import { ShieldCheck, Zap, Truck, Layers, Terminal } from 'lucide-react';
+import { ShieldCheck, Zap, Truck, Layers, Terminal, User, LogOut, CheckCircle, Flame } from 'lucide-react';
 
-export default function App() {
+function PlatformContent() {
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [apiStatus, setApiStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -12,13 +17,13 @@ export default function App() {
       const res = await fetch('/api/health');
       const data = await res.json();
       setApiStatus(data.status);
-      toast.success('Core API Telemetry Connected', {
+      toast.success('Core API Telemetry Online', {
         description: `Service: ${data.service} • Status: ${data.status}`
       });
     } catch {
       setApiStatus('OFFLINE');
       toast.error('API Connection Offline', {
-        description: 'Ensure backend server is running on port 5000'
+        description: 'Ensure backend server is running on port 5050'
       });
     } finally {
       setLoading(false);
@@ -28,119 +33,144 @@ export default function App() {
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between">
       {/* Top Telemetry Header */}
-      <header className="border-b border-fastener-border bg-carbon-slate/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-fastener-border bg-carbon-slate/90 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded bg-carbon-card border border-nitro-amber/40 flex items-center justify-center text-nitro-amber font-orbitron font-black text-xl shadow-nitro-sm">
+          <div className="w-10 h-10 rounded bg-carbon-card border border-nitro-amber/50 flex items-center justify-center text-nitro-amber font-orbitron font-black text-2xl shadow-nitro-sm">
             R
           </div>
           <div>
-            <span className="font-orbitron font-black text-lg tracking-[0.2em] text-machined-titanium">
+            <span className="font-orbitron font-black text-xl tracking-[0.2em] text-machined-titanium block leading-none">
               ROVIN
             </span>
-            <span className="text-[10px] font-mono tracking-widest block text-nitro-amber">
-              PRECISION RC & TECH
+            <span className="text-[10px] font-mono tracking-widest block text-nitro-amber mt-1">
+              PRECISION RC &bull; TECH NOVELTIES &bull; DECOR
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 telemetry-tag">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            SYS: CALIBRATED
-          </div>
-          <button
-            onClick={() => toast.info('Phase 1 Scaffolding Online', { description: 'PERN Stack + Centralized 5-Color System active.' })}
-            className="outline-btn text-[11px] py-1.5 px-3"
-          >
-            Telemetry Ping
-          </button>
+        {/* User Status / Auth Controls */}
+        <div className="flex items-center gap-3">
+          {isAuthenticated && user ? (
+            <div className="flex items-center gap-3 bg-carbon-card border border-fastener-gunmetal rounded-lg p-1.5 pr-3">
+              <img
+                src={user.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
+                alt={user.name}
+                className="w-8 h-8 rounded-full border border-nitro-amber/60 bg-carbon-slate"
+              />
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-bold text-machined-titanium leading-tight">{user.name}</p>
+                <span className="inline-block text-[10px] font-mono text-nitro-amber tracking-wider">
+                  [{user.role}]
+                </span>
+              </div>
+              <button
+                onClick={logout}
+                title="Logout"
+                className="text-machined-dim hover:text-red-400 p-1.5 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+                className="outline-btn text-xs py-2 px-3.5"
+              >
+                Access Terminal
+              </button>
+              <button
+                onClick={() => { setAuthMode('register'); setAuthModalOpen(true); }}
+                className="nitro-btn text-xs py-2 px-3.5"
+              >
+                Join Crew
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Hero Showcase Area */}
-      <main className="max-w-6xl mx-auto px-6 py-12 flex-1 flex flex-col justify-center">
-        <div className="text-center max-w-3xl mx-auto mb-12">
+      {/* Main Showcase Hero */}
+      <main className="max-w-6xl mx-auto px-6 py-10 flex-1 flex flex-col justify-center">
+        <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 telemetry-tag mb-4 border-nitro-amber/40 text-nitro-amber">
-            <Zap className="w-3.5 h-3.5" />
-            PERN MONOREPO • PHASE 1 ONLINE
+            <Zap className="w-3.5 h-3.5 animate-pulse" />
+            PHASE 2 &bull; POSTGRESQL + PRISMA 6 + BCRYPT + 6-DIGIT OTP ACTIVE
           </div>
           <h1 className="font-orbitron font-black text-4xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight mb-4">
-            ENGINEERED FOR <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">HIGH-TORQUE</span> COMMERCE
+            CHISELED <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">HIGH-TORQUE</span> COMMERCE
           </h1>
           <p className="text-machined-muted text-base sm:text-lg max-w-2xl mx-auto font-normal">
-            Precision RC Drift & Crawler Cars, Hobby Electronics, and Room Tech tailored for Bangladesh. Built on PostgreSQL, Prisma 6, Express, and React.
+            PostgreSQL database synchronized on port 5432. Dual authentication system featuring 6-digit OTP verification, bcrypt password hashing, and 6 tactical operator avatars.
           </p>
         </div>
 
-        {/* 5-Color Brand System Matrix */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-10">
-          <div className="chassis-card p-4 text-center">
-            <div className="w-full h-12 rounded bg-nitro-amber mb-3 border border-pitch-obsidian flex items-center justify-center font-mono text-xs text-pitch-obsidian font-bold">
-              #FFC837
+        {/* Tactical Telemetry Status Matrix */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+          <div className="chassis-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="telemetry-tag text-nitro-amber border-nitro-amber/30">DATABASE: POSTGRESQL 16</span>
+              <CheckCircle className="w-4 h-4 text-emerald-400" />
             </div>
-            <p className="font-orbitron text-xs font-bold text-machined-titanium">Nitro Amber</p>
-            <p className="text-[11px] text-machined-dim mt-0.5">Primary Accent</p>
+            <h3 className="font-orbitron text-sm font-bold text-machined-titanium mb-1">
+              Prisma 6.x Synchronized
+            </h3>
+            <p className="text-xs text-machined-muted leading-relaxed">
+              13 relational models created in <code className="text-nitro-amber font-mono">rovin_db</code>. Includes Users, Saved Addresses, OTPs, Activity Logs, and Taxonomies.
+            </p>
           </div>
 
-          <div className="chassis-card p-4 text-center">
-            <div className="w-full h-12 rounded bg-carbon-slate mb-3 border border-fastener-gunmetal flex items-center justify-center font-mono text-xs text-machined-muted">
-              #0E0F14
+          <div className="chassis-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="telemetry-tag text-nitro-amber border-nitro-amber/30">SECURITY: BCRYPT & OTP</span>
+              <ShieldCheck className="w-4 h-4 text-nitro-amber" />
             </div>
-            <p className="font-orbitron text-xs font-bold text-machined-titanium">Carbon Slate</p>
-            <p className="text-[11px] text-machined-dim mt-0.5">Surface Cards</p>
+            <h3 className="font-orbitron text-sm font-bold text-machined-titanium mb-1">
+              6-Digit Verification Gateway
+            </h3>
+            <p className="text-xs text-machined-muted leading-relaxed">
+              Pluggable OTP architecture (Console &bull; Free SMTP Email &bull; Ready for BD SMS). Rate-limited to 60s cooldown and 5-minute expiry.
+            </p>
           </div>
 
-          <div className="chassis-card p-4 text-center">
-            <div className="w-full h-12 rounded bg-pitch-obsidian mb-3 border border-fastener-gunmetal flex items-center justify-center font-mono text-xs text-machined-dim">
-              #07070A
+          <div className="chassis-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="telemetry-tag text-nitro-amber border-nitro-amber/30">IDENTITY: AVATARS</span>
+              <User className="w-4 h-4 text-machined-silver" />
             </div>
-            <p className="font-orbitron text-xs font-bold text-machined-titanium">Pitch Obsidian</p>
-            <p className="text-[11px] text-machined-dim mt-0.5">Base Chassis</p>
-          </div>
-
-          <div className="chassis-card p-4 text-center">
-            <div className="w-full h-12 rounded bg-machined-titanium mb-3 border border-fastener-gunmetal flex items-center justify-center font-mono text-xs text-pitch-obsidian font-bold">
-              #FFFFFF
-            </div>
-            <p className="font-orbitron text-xs font-bold text-machined-titanium">Machined White</p>
-            <p className="text-[11px] text-machined-dim mt-0.5">High Contrast</p>
-          </div>
-
-          <div className="chassis-card p-4 text-center col-span-2 sm:col-span-1">
-            <div className="w-full h-12 rounded bg-fastener-gunmetal mb-3 border border-fastener-border flex items-center justify-center font-mono text-xs text-machined-silver">
-              #3A4054
-            </div>
-            <p className="font-orbitron text-xs font-bold text-machined-titanium">Gunmetal</p>
-            <p className="text-[11px] text-machined-dim mt-0.5">Hardware Rivets</p>
+            <h3 className="font-orbitron text-sm font-bold text-machined-titanium mb-1">
+              6 Tactical Vector Avatars
+            </h3>
+            <p className="text-xs text-machined-muted leading-relaxed">
+              Assigned automatically by gender during signup (Drift Pilots & Tech Navigators). Replaceable via Cloudinary profile uploads.
+            </p>
           </div>
         </div>
 
-        {/* Action Controls & Health Probe */}
+        {/* Interactive Controls */}
         <div className="flex flex-wrap items-center justify-center gap-4">
+          <button
+            onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+            className="nitro-btn flex items-center gap-2 py-3 px-6"
+          >
+            <User className="w-4 h-4" />
+            {isAuthenticated ? 'Manage Crew Session' : 'Test Login (Admin or Customer)'}
+          </button>
+
           <button
             onClick={testApiHealth}
             disabled={loading}
-            className="nitro-btn flex items-center gap-2"
+            className="outline-btn flex items-center gap-2 py-3 px-6"
           >
-            <Terminal className="w-4 h-4" />
-            {loading ? 'Checking Telemetry...' : 'Test Backend Core API'}
-          </button>
-          <button
-            onClick={() => toast('Steadfast & Pathao Courier Gateways Ready', {
-              description: 'Unified adapter architecture configured for 1-click dispatch.',
-              icon: <Truck className="w-4 h-4 text-nitro-amber" />
-            })}
-            className="outline-btn flex items-center gap-2"
-          >
-            <Truck className="w-4 h-4 text-nitro-amber" />
-            Courier Gateway Probe
+            <Terminal className="w-4 h-4 text-nitro-amber" />
+            {loading ? 'Pinging Telemetry...' : 'Ping Backend API (Port 5050)'}
           </button>
         </div>
 
         {apiStatus && (
           <div className="mt-6 text-center">
             <span className="telemetry-tag border-emerald-500/50 text-emerald-400">
-              API TELEMETRY: {apiStatus}
+              API TELEMETRY STATUS: {apiStatus} (POSTGRESQL 16 SYNCED)
             </span>
           </div>
         )}
@@ -148,9 +178,24 @@ export default function App() {
 
       {/* Technical Footer */}
       <footer className="border-t border-fastener-border py-4 px-6 text-center text-xs text-machined-dim flex flex-col sm:flex-row items-center justify-between gap-2 bg-pitch-deep">
-        <span className="font-mono">ROVIN TACTICAL PLATFORM • PERN MONOREPO V1.0</span>
-        <span className="font-mono text-nitro-amber/80">BANGLADESH E-COMMERCE ENGINE</span>
+        <span className="font-mono">ROVIN TACTICAL PLATFORM &bull; BANGLADESH E-COMMERCE CORE</span>
+        <span className="font-mono text-nitro-amber/80">PHASE 2 DEPLOYED &bull; POSTGRESQL 16</span>
       </footer>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authMode}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <PlatformContent />
+    </AuthProvider>
   );
 }

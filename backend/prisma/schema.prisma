@@ -1,0 +1,303 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum PaymentMethod {
+  COD
+  BKASH
+  NAGAD
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+// -------------------------------------------------------------
+// USER & SECURITY
+// -------------------------------------------------------------
+model User {
+  id              String            @id @default(uuid())
+  name            String
+  email           String            @unique
+  phone           String            @unique
+  passwordHash    String
+  gender          Gender            @default(MALE)
+  dateOfBirth     DateTime?
+  profileImageUrl String?
+  isEmailVerified Boolean           @default(false)
+  isPhoneVerified Boolean           @default(false)
+  role            Role              @default(CUSTOMER)
+  
+  // Moderation / Ban system
+  isBanned        Boolean           @default(false)
+  banReason       String?
+  banExpiresAt    DateTime?
+  strikeCount     Int               @default(0)
+
+  // Relations
+  addresses       Address[]
+  orders          Order[]
+  reviews         Review[]
+  activityLogs    UserActivityLog[]
+  otps            OtpVerification[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([email])
+  @@index([phone])
+}
+
+model Address {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String   @default("Home") // Home, Office, Garage
+  recipientName String
+  phoneNumber   String
+  district      String   // e.g. Dhaka, Chittagong
+  thana         String   // e.g. Dhanmondi, Mirpur
+  addressLine   String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+model OtpVerification {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identifier String   // Target email or phone number
+  codeHash   String   // bcrypt hash of the 6-digit OTP
+  purpose    String   // REGISTER, FORGOT_PASSWORD, VERIFY_PHONE
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  isUsed     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, purpose])
+}
+
+model UserActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // LOGIN, FAILED_LOGIN, PASSWORD_CHANGE, ORDER_CREATE, REVIEW_POST
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}
+
+// -------------------------------------------------------------
+// CATEGORIES & PRODUCTS
+// -------------------------------------------------------------
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  slug          String        @unique
+  description   String?
+  imageUrl      String?
+  isActive      Boolean       @default(true)
+  subcategories Subcategory[]
+  products      Product[]
+  createdAt     DateTime      @default(now())
+}
+
+model Subcategory {
+  id          String    @id @default(uuid())
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+
+  @@index([categoryId])
+}
+
+model Product {
+  id                 String       @id @default(uuid())
+  title              String
+  slug               String       @unique
+  sku                String       @unique
+  description        String
+  categoryId         String
+  category           Category     @relation(fields: [categoryId], references: [id])
+  subcategoryId      String?
+  subcategory        Subcategory? @relation(fields: [subcategoryId], references: [id])
+  
+  priceBDT           Float
+  costPriceBDT       Float?       // Internal reference for profit margins
+  discountPriceBDT   Float?
+  stockQuantity      Int          @default(0)
+  lowStockThreshold  Int          @default(5)
+  
+  // Rich Attributes & Variants
+  availableColors    Json?        // [{"name": "Matte Stealth", "hex": "#1A1A1A"}]
+  availableSizes     Json?        // ["1:16 Scale", "1:12 Scale"]
+  weightGrams        Float?
+  packageIncludes    Json?        // ["1x RC Buggy", "1x 2.4GHz Transmitter", "1x Battery"]
+  specs              Json?        // {"scale": "1:16", "motor": "Brushless 2845", "topSpeed": "55 km/h"}
+  
+  images             String[]     // Cloudinary image URLs
+  isActive           Boolean      @default(true)
+  featured           Boolean      @default(false)
+
+  reviews            Review[]
+  orderItems         OrderItem[]
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([slug])
+  @@index([sku])
+  @@index([categoryId])
+}
+
+model Review {
+  id                 String   @id @default(uuid())
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating             Int      // 1 to 5
+  title              String?
+  comment            String
+  isVerifiedPurchase Boolean  @default(false)
+  isApproved         Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  @@index([productId])
+  @@index([userId])
+}
+
+// -------------------------------------------------------------
+// ORDERS & COURIER FULFILLMENT
+// -------------------------------------------------------------
+model Order {
+  id              String               @id @default(uuid())
+  orderNumber     String               @unique // e.g. ROV-2026-001
+  userId          String?
+  user            User?                @relation(fields: [userId], references: [id])
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  deliveryAddress String
+  district        String
+  thana           String
+  
+  subtotal        Float
+  deliveryCharge  Float
+  discountAmount  Float                @default(0)
+  totalAmount     Float
+  
+  couponCode      String?
+  paymentMethod   PaymentMethod        @default(COD)
+  paymentStatus   String               @default("PENDING") // PENDING, PAID, REFUNDED
+  orderStatus     OrderStatus          @default(PENDING)
+  
+  orderItems      OrderItem[]
+  consignments    CourierConsignment[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([orderNumber])
+  @@index([customerPhone])
+  @@index([orderStatus])
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Float
+  totalPrice  Float
+  chosenColor String?
+  chosenSize  String?
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model CourierConsignment {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courierProvider String   // STEADFAST | PATHAO
+  consignmentId   String
+  trackingCode    String
+  status          String
+  codAmount       Float
+  deliveryFee     Float
+  labelPrinted    Boolean  @default(false)
+  rawWebhookData  Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([consignmentId])
+  @@index([trackingCode])
+}
+
+// -------------------------------------------------------------
+// CONFIGURATION & PROMOTIONS
+// -------------------------------------------------------------
+model SystemSettings {
+  id                         String   @id @default("default")
+  deliveryChargeInsideDhaka  Float    @default(70)
+  deliveryChargeOutsideDhaka Float    @default(130)
+  freeShippingThreshold      Float?
+  bkashMerchantNumber        String?
+  nagadMerchantNumber        String?
+  maintenanceMode            Boolean  @default(false)
+  updatedAt                  DateTime @updatedAt
+}
+
+model Coupon {
+  id             String    @id @default(uuid())
+  code           String    @unique
+  discountType   String    // PERCENTAGE or FIXED
+  discountValue  Float
+  minOrderAmount Float     @default(0)
+  maxDiscount    Float?
+  usageLimit     Int?
+  usageCount     Int       @default(0)
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([code])
+}

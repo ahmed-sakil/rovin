@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -30,6 +31,9 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
+// Mounted Routes
+app.use('/api/auth', authRoutes);
+
 // 404 Handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
@@ -50,7 +54,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Start listening if not imported as module
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`[ROVIN API] Server running in ${process.env.NODE_ENV || 'development'} mode on http://localhost:${PORT}`);
+    console.log(`[ROVIN API] Server running on http://localhost:${PORT}`);
   });
 }
 
