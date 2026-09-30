@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
+import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { Phone, Mail, MapPin, Send, MessageSquare, CheckCircle, ShieldCheck } from 'lucide-react';
@@ -220,9 +221,7 @@ export const ContactPage: React.FC = () => {
         </div>
       </main>
 
-      <footer className="border-t border-fastener-border py-6 px-6 text-center text-xs text-machined-dim bg-pitch-deep">
-        <span className="font-mono">ROVIN BANGLADESH &bull; PRECISION TELEMETRY PROTOCOL</span>
-      </footer>
+      <StorefrontFooter />
 
       <MobileBottomNav onOpenAuth={() => {}} />
     </div>

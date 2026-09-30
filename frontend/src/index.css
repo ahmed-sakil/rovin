@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    /* LIGHT THEME PALETTE */
+    /* LIGHT THEME PALETTE (Soft Industrial Matte Titanium, No Blinding Glare) */
     --color-nitro-amber: 217 119 6;       /* Warm amber #D97706 */
     --color-nitro-orange: 180 83 9;       /* Deep amber #B45309 */
     --color-nitro-glow: 217 119 6;
 
-    --color-carbon-slate: 255 255 255;    /* #FFFFFF pure clean surface */
-    --color-carbon-card: 255 255 255;     /* #FFFFFF */
-    --color-carbon-elevated: 248 250 252; /* #F8FAFC */
-    --color-carbon-hover: 241 245 249;    /* #F1F5F9 */
+    --color-carbon-slate: 245 247 250;    /* #F5F7FA architectural light surface */
+    --color-carbon-card: 255 255 255;     /* #FFFFFF crisp card surface */
+    --color-carbon-elevated: 232 237 245; /* #E8EDF5 soft elevated backing */
+    --color-carbon-hover: 222 229 238;    /* #DEE5EE */
 
-    --color-pitch-obsidian: 248 250 252;  /* #F8FAFC canvas background */
-    --color-pitch-deep: 241 245 249;      /* #F1F5F9 */
+    --color-pitch-obsidian: 238 242 246;  /* #EEF2F6 soft matte titanium background */
+    --color-pitch-deep: 228 233 240;      /* #E4E9F0 */
 
     --color-machined-titanium: 15 23 42;  /* #0F172A deep dark heading */
     --color-machined-silver: 51 65 85;    /* #334155 high-contrast text */
-    --color-machined-muted: 100 116 139;  /* #64748B */
-    --color-machined-dim: 148 163 184;    /* #94A3B8 */
+    --color-machined-muted: 80 95 115;    /* #505F73 readable muted */
+    --color-machined-dim: 120 135 155;    /* #78879B */
 
-    --color-fastener-gunmetal: 148 163 184; /* #94A3B8 */
-    --color-fastener-border: 226 232 240;   /* #E2E8F0 */
-    --color-fastener-dark: 203 213 225;     /* #CBD5E1 */
+    --color-fastener-gunmetal: 140 155 175; /* #8C9BAF */
+    --color-fastener-border: 212 220 230;   /* #D4DCE6 distinct structural border */
+    --color-fastener-dark: 195 205 218;     /* #C3CDDA */
   }
 
   .dark {
@@ -51,10 +51,46 @@
     --color-fastener-dark: 28 32 44;        /* #1C202C */
   }
 
+  /* Permanent scrollbar track reservation: Eliminates jumpscare layout shift */
+  html {
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+  }
+
   body {
     @apply bg-pitch-obsidian text-machined-titanium transition-colors duration-200;
     overflow-x: hidden;
   }
+}
+
+/* ROVIN Tactical Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(var(--color-pitch-deep), 0.9);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-fastener-gunmetal), 0.45);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-nitro-amber), 0.85);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-fastener-gunmetal), 0.5) rgba(var(--color-pitch-deep), 0.9);
 }
 
 /* Tactical Telemetry & Industrial Badges */

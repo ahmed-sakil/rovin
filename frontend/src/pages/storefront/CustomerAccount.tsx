@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, UserAddress } from '../../context/AuthContext';
 import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
+import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { BrandLogo } from '../../components/brand/BrandLogo';
@@ -707,16 +708,7 @@ export const CustomerAccount: React.FC = () => {
         </div>
       )}
 
-      <footer className="border-t border-fastener-border py-6 px-6 text-center text-xs text-machined-dim bg-pitch-deep">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="font-mono">ROVIN BANGLADESH &bull; PILOT COMMAND TELEMETRY</span>
-          <div className="flex gap-4 font-mono text-[11px]">
-            <Link to="/about" className="hover:text-nitro-amber">About</Link>
-            <Link to="/contact" className="hover:text-nitro-amber">Contact</Link>
-            <Link to="/privacy-policy" className="hover:text-nitro-amber">Privacy</Link>
-          </div>
-        </div>
-      </footer>
+      <StorefrontFooter />
 
       <MobileBottomNav onOpenAuth={() => {}} />
     </div>

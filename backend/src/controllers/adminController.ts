@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { AuthenticatedRequest } from '../middlewares/auth.js';
 
 export async function getDashboardStats(req: Request, res: Response): Promise<void> {
   try {
@@ -165,3 +166,287 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
     res.status(500).json({ success: false, message: 'Failed to save settings' });
   }
 }
+
+// -------------------------------------------------------------
+// USER MANAGEMENT & SECURITY AUDIT MODERATION
+// -------------------------------------------------------------
+
+export async function getUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { search, role, status } = req.query;
+
+    const where: any = {};
+
+    if (search && typeof search === 'string') {
+      const q = search.trim();
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    if (role && role !== 'ALL') {
+      where.role = role;
+    }
+
+    if (status === 'BANNED') {
+      where.isBanned = true;
+    } else if (status === 'ACTIVE') {
+      where.isBanned = false;
+    } else if (status === 'STRIKED') {
+      where.strikeCount = { gt: 0 };
+    }
+
+    const [users, totalCount, bannedCount, strikedCount] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          gender: true,
+          role: true,
+          profileImageUrl: true,
+          isBanned: true,
+          banReason: true,
+          banExpiresAt: true,
+          strikeCount: true,
+          createdAt: true,
+          _count: { select: { orders: true, reviews: true } },
+          orders: {
+            select: { totalAmount: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.user.count(),
+      prisma.user.count({ where: { isBanned: true } }),
+      prisma.user.count({ where: { strikeCount: { gt: 0 } } }),
+    ]);
+
+    // Compute lifetime spent for each user
+    const formatted = users.map((u) => {
+      const lifetimeSpent = u.orders.reduce((acc, curr) => acc + curr.totalAmount, 0);
+      const { orders, ...rest } = u;
+      return {
+        ...rest,
+        orderCount: u._count.orders,
+        lifetimeSpent,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      users: formatted,
+      stats: {
+        total: totalCount,
+        banned: bannedCount,
+        striked: strikedCount,
+        active: totalCount - bannedCount,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to retrieve user roster', error: error.message });
+  }
+}
+
+export async function banUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { reason, durationHours } = req.body;
+
+    const targetUser = await prisma.user.findUnique({ where: { id: String(id) } });
+    if (!targetUser) {
+      res.status(404).json({ success: false, message: 'Pilot not found in registry.' });
+      return;
+    }
+
+    if (targetUser.role === 'ADMIN' && req.user?.id !== targetUser.id) {
+      res.status(403).json({ success: false, message: 'Cannot ban an administrative officer.' });
+      return;
+    }
+
+    let banExpiresAt: Date | null = null;
+    if (durationHours && Number(durationHours) > 0) {
+      banExpiresAt = new Date(Date.now() + Number(durationHours) * 60 * 60 * 1000);
+    }
+
+    const banReason = reason || 'Administrative policy violation';
+
+    const updated = await prisma.user.update({
+      where: { id: String(id) },
+      data: {
+        isBanned: true,
+        banReason,
+        banExpiresAt,
+      },
+    });
+
+    // Security Audit Log
+    await prisma.userActivityLog.create({
+      data: {
+        userId: targetUser.id,
+        action: 'ADMIN_BAN_USER',
+        ipAddress: req.ip || '127.0.0.1',
+        userAgent: req.headers['user-agent'] || 'ROVIN Admin Panel',
+        metadata: {
+          adminId: req.user?.id,
+          reason: banReason,
+          durationHours: durationHours || 'Permanent',
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Pilot ${targetUser.name} has been suspended.`,
+      user: updated,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to execute suspension protocol' });
+  }
+}
+
+export async function unbanUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    const targetUser = await prisma.user.findUnique({ where: { id: String(id) } });
+    if (!targetUser) {
+      res.status(404).json({ success: false, message: 'Pilot not found.' });
+      return;
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: String(id) },
+      data: {
+        isBanned: false,
+        banReason: null,
+        banExpiresAt: null,
+      },
+    });
+
+    // Security Audit Log
+    await prisma.userActivityLog.create({
+      data: {
+        userId: targetUser.id,
+        action: 'ADMIN_UNBAN_USER',
+        ipAddress: req.ip || '127.0.0.1',
+        userAgent: req.headers['user-agent'] || 'ROVIN Admin Panel',
+        metadata: {
+          adminId: req.user?.id,
+          restoredAt: new Date().toISOString(),
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Suspension lifted for pilot ${targetUser.name}.`,
+      user: updated,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to lift suspension' });
+  }
+}
+
+export async function punishUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { strikeReason } = req.body;
+
+    const targetUser = await prisma.user.findUnique({ where: { id: String(id) } });
+    if (!targetUser) {
+      res.status(404).json({ success: false, message: 'Pilot not found.' });
+      return;
+    }
+
+    const newStrikeCount = targetUser.strikeCount + 1;
+    let autoBanned = false;
+    let banReason = targetUser.banReason;
+    let banExpiresAt = targetUser.banExpiresAt;
+
+    // Automated Disciplinary Rule: 3 strikes triggers automated 7-day suspension
+    if (newStrikeCount >= 3) {
+      autoBanned = true;
+      banReason = 'Automated 7-Day Suspension: Threshold of 3 Disciplinary Strikes Exceeded';
+      banExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: String(id) },
+      data: {
+        strikeCount: newStrikeCount,
+        isBanned: autoBanned ? true : targetUser.isBanned,
+        banReason: autoBanned ? banReason : targetUser.banReason,
+        banExpiresAt: autoBanned ? banExpiresAt : targetUser.banExpiresAt,
+      },
+    });
+
+    // Security Audit Log
+    await prisma.userActivityLog.create({
+      data: {
+        userId: targetUser.id,
+        action: 'ADMIN_STRIKE_USER',
+        ipAddress: req.ip || '127.0.0.1',
+        userAgent: req.headers['user-agent'] || 'ROVIN Admin Panel',
+        metadata: {
+          adminId: req.user?.id,
+          strikeCount: newStrikeCount,
+          reason: strikeReason || 'Disciplinary violation (Fake COD / Spam)',
+          autoBanned,
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: autoBanned
+        ? `Pilot received strike #${newStrikeCount} and has been AUTO-SUSPENDED for 7 days!`
+        : `Disciplinary strike #${newStrikeCount} recorded for ${targetUser.name}.`,
+      user: updated,
+      autoBanned,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to issue disciplinary strike' });
+  }
+}
+
+export async function getAuditLogs(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { action, search, limit } = req.query;
+
+    const where: any = {};
+    if (action && action !== 'ALL') {
+      where.action = String(action);
+    }
+
+    if (search && typeof search === 'string') {
+      const q = search.trim();
+      where.OR = [
+        { action: { contains: q, mode: 'insensitive' } },
+        { ipAddress: { contains: q, mode: 'insensitive' } },
+        { user: { name: { contains: q, mode: 'insensitive' } } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+
+    const logs = await prisma.userActivityLog.findMany({
+      where,
+      take: limit ? Number(limit) : 50,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, role: true, isBanned: true },
+        },
+      },
+    });
+
+    res.status(200).json({ success: true, logs });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to fetch audit logs' });
+  }
+}
+

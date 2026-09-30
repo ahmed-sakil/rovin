@@ -139,20 +139,12 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                to="/login"
-                className="outline-btn text-xs py-1.5 px-3 hidden sm:inline-flex"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                className="nitro-btn text-xs py-1.5 px-3 hidden sm:inline-flex shadow-nitro-sm"
-              >
-                Register
-              </Link>
-            </div>
+            <Link
+              to="/login"
+              className="outline-btn text-xs py-1.5 px-3.5 hidden sm:inline-flex"
+            >
+              Sign In
+            </Link>
           )}
         </div>
       </header>
@@ -277,22 +269,13 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    to="/login"
-                    onClick={() => setBurgerOpen(false)}
-                    className="outline-btn text-xs py-2 text-center"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={() => setBurgerOpen(false)}
-                    className="nitro-btn text-xs py-2 text-center"
-                  >
-                    Register
-                  </Link>
-                </div>
+                <Link
+                  to="/login"
+                  onClick={() => setBurgerOpen(false)}
+                  className="w-full nitro-btn text-xs py-2.5 text-center block shadow-nitro-sm"
+                >
+                  Pilot Sign In
+                </Link>
               )}
             </div>
           </div>

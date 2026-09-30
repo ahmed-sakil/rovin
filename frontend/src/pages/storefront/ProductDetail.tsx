@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
+import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { useCart } from '../../context/CartContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -264,9 +265,7 @@ export const ProductDetail: React.FC = () => {
         </div>
       </main>
 
-      <footer className="border-t border-fastener-border py-6 px-6 text-center text-xs text-machined-dim bg-pitch-deep">
-        <span className="font-mono">ROVIN BANGLADESH &bull; PRECISION TELEMETRY PROTOCOL</span>
-      </footer>
+      <StorefrontFooter />
 
       <MobileBottomNav onOpenAuth={() => {}} />
     </div>

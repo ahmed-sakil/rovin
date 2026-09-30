@@ -9,6 +9,7 @@ import {
   FolderTree,
   ShoppingBag,
   Sliders,
+  ShieldAlert,
   Store,
   LogOut,
   ChevronDown,
@@ -43,6 +44,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { label: 'Products & Stock', to: '/admin/products', icon: Boxes },
     { label: 'Dynamic Categories', to: '/admin/categories', icon: FolderTree },
     { label: 'Orders & Courier', to: '/admin/orders', icon: ShoppingBag },
+    { label: 'Security & Pilots', to: '/admin/users', icon: ShieldAlert },
     { label: 'System Settings', to: '/admin/settings', icon: Sliders },
   ];
 
@@ -56,9 +58,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {/* Mobile Header Bar */}
       <div className="md:hidden bg-carbon-slate border-b border-fastener-border px-4 py-3 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-carbon-card border border-nitro-amber flex items-center justify-center font-orbitron font-black text-nitro-amber">
-            R
-          </div>
+          <BrandLogo variant="icon" size="sm" />
           <span className="font-orbitron font-black text-sm tracking-wider">ROVIN ADMIN</span>
         </div>
         <button

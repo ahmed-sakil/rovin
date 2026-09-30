@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
+import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { FileText, Shield, Clock, ArrowLeft } from 'lucide-react';
@@ -81,9 +82,7 @@ export const CmsPage: React.FC<{ slugOverride?: string }> = ({ slugOverride }) =
         )}
       </main>
 
-      <footer className="border-t border-fastener-border py-6 px-6 text-center text-xs text-machined-dim bg-pitch-deep">
-        <span className="font-mono">ROVIN BANGLADESH &bull; PRECISION TELEMETRY PROTOCOL</span>
-      </footer>
+      <StorefrontFooter />
 
       <MobileBottomNav onOpenAuth={() => {}} />
     </div>

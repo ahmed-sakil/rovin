@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 import { AuthModal } from './components/auth/AuthModal';
 
 // Storefront Pages
+import { HomePage } from './pages/storefront/HomePage';
 import { ProductCatalog } from './pages/storefront/ProductCatalog';
 import { ProductDetail } from './pages/storefront/ProductDetail';
 import { CheckoutPage } from './pages/storefront/CheckoutPage';
@@ -21,6 +22,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminCategories } from './pages/admin/AdminCategories';
 import { AdminOrders } from './pages/admin/AdminOrders';
+import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminSettings } from './pages/admin/AdminSettings';
 
 export default function App() {
@@ -32,8 +34,10 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <Routes>
-            {/* Default Page: Catalog Hangar */}
-            <Route path="/" element={<ProductCatalog />} />
+            {/* Storefront: Curated Home Experience */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* Dedicated All Equipment Catalog */}
             <Route path="/products" element={<ProductCatalog />} />
 
             {/* Product Specifications & Order Placement */}
@@ -58,6 +62,7 @@ export default function App() {
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Routes>
 
