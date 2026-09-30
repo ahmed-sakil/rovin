@@ -403,7 +403,7 @@ export const CheckoutPage: React.FC = () => {
                         disabled={authLoading || !authIdentifier || !authPassword}
                         className="nitro-btn w-full text-xs py-2.5 mt-2 flex items-center justify-center gap-2"
                       >
-                        {authLoading ? 'Verifying Pilot...' : 'Sign In & Unlock Checkout'}
+                        {authLoading ? 'Logging In...' : 'Login & Unlock Checkout'}
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -413,7 +413,7 @@ export const CheckoutPage: React.FC = () => {
                         <div className="space-y-2.5">
                           <div>
                             <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
-                              Pilot Name
+                              Full Name
                             </label>
                             <input
                               type="text"
@@ -496,7 +496,7 @@ export const CheckoutPage: React.FC = () => {
                             disabled={authLoading || !regName || !regEmail || !regPhone || !regPassword}
                             className="nitro-btn w-full text-xs py-2.5 mt-2 flex items-center justify-center gap-2"
                           >
-                            {authLoading ? 'Transmitting Code...' : 'Dispatch 6-Digit Code'}
+                            {authLoading ? 'Sending OTP...' : 'Send OTP'}
                             <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </div>

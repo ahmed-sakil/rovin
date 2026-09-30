@@ -35,6 +35,7 @@ interface AuthContextType {
   login: (identifier: string, password: string) => Promise<boolean>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
+  updateProfile: (data: Partial<UserProfile>) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.error('Registration Code Error', { description: data.message || 'Failed to dispatch OTP.' });
         return false;
       }
-      toast.success('6-Digit Verification Code Sent', { description: data.message });
+      toast.success('OTP Sent', { description: data.message });
       return true;
     } catch {
       toast.error('Network Error', { description: 'Could not connect to authentication gateway.' });
@@ -92,21 +93,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verifyAndRegister = async (formData: any): Promise<boolean> => {
     try {
-      const res = await fetch('/api/auth/verify-and-register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error('Calibration Failed', { description: data.message || 'Invalid registration payload.' });
+        toast.error('Registration Failed', { description: data.message || 'Invalid registration payload.' });
         return false;
       }
 
       setToken(data.token);
       setUser(data.user);
       localStorage.setItem('rovin_token', data.token);
-      toast.success('Account Initialized', { description: `Welcome aboard, ${data.user.name}!` });
+      toast.success('Registration Complete', { description: `Welcome, ${data.user.name}!` });
       return true;
     } catch {
       toast.error('Registration Error', { description: 'Network issue during registration.' });
@@ -142,6 +143,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (formData: Partial<UserProfile>): Promise<boolean> => {
+    if (!token) return false;
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error('Update Failed', { description: data.message || 'Could not update profile.' });
+        return false;
+      }
+      setUser(data.user);
+      toast.success('Profile Saved', { description: data.message || 'Your personal telemetry has been updated.' });
+      return true;
+    } catch {
+      toast.error('Network Error', { description: 'Could not connect to authentication gateway.' });
+      return false;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -164,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendRegisterOtp,
         verifyAndRegister,
         login,
+        updateProfile,
         logout,
         refreshProfile,
       }}

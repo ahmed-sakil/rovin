@@ -24,8 +24,20 @@ import {
   Phone,
   Mail,
   Lock,
+  Edit3,
+  UserCheck,
+  Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const DEFAULT_AVATARS = [
+  { id: 'm1', label: 'Recon Pilot (M)', url: '/assets/avatars/avatar-m1.svg' },
+  { id: 'm2', label: 'Torque Lead (M)', url: '/assets/avatars/avatar-m2.svg' },
+  { id: 'm3', label: 'Chassis Lead (M)', url: '/assets/avatars/avatar-m3.svg' },
+  { id: 'f1', label: 'Avionics (F)', url: '/assets/avatars/avatar-f1.svg' },
+  { id: 'f2', label: 'Suspension (F)', url: '/assets/avatars/avatar-f2.svg' },
+  { id: 'f3', label: 'Commander (F)', url: '/assets/avatars/avatar-f3.svg' },
+];
 
 const BD_DISTRICTS = [
   'Dhaka', 'Gazipur', 'Narayanganj', 'Chittagong', 'Cox\'s Bazar', 'Sylhet',
@@ -80,11 +92,51 @@ interface OrderRecord {
 export const CustomerAccount: React.FC = () => {
   usePageTitle('Pilot Command Station', 'Personal Telemetry, Mission History, & Address Matrix');
   const navigate = useNavigate();
-  const { user, token, isAuthenticated, logout, refreshProfile } = useAuth();
+  const { user, token, isAuthenticated, logout, refreshProfile, updateProfile } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'security'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'security' | 'profile'>('orders');
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // Profile Edit State
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editPhone, setEditPhone] = useState(user?.phone || '');
+  const [editGender, setEditGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'>(user?.gender || 'MALE');
+  const [editDob, setEditDob] = useState(user?.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '');
+  const [editAvatar, setEditAvatar] = useState(user?.profileImageUrl || '/assets/avatars/avatar-m1.svg');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setEditName(user.name || '');
+      setEditPhone(user.phone || '');
+      setEditGender(user.gender || 'MALE');
+      setEditDob(user.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '');
+      setEditAvatar(user.profileImageUrl || '/assets/avatars/avatar-m1.svg');
+    }
+  }, [user]);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim()) {
+      toast.error('Name Required', { description: 'Please enter your full name.' });
+      return;
+    }
+    if (!editPhone.trim()) {
+      toast.error('Mobile Required', { description: 'Please enter your 11-digit BD mobile number.' });
+      return;
+    }
+
+    setSavingProfile(true);
+    await updateProfile({
+      name: editName.trim(),
+      phone: editPhone.trim(),
+      gender: editGender,
+      dateOfBirth: editDob || undefined,
+      profileImageUrl: editAvatar,
+    });
+    setSavingProfile(false);
+  };
 
   // Address form modal
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -289,15 +341,33 @@ export const CustomerAccount: React.FC = () => {
                     GENDER: {user.gender}
                   </span>
                 )}
+                {user?.dateOfBirth && (
+                  <span className="flex items-center gap-1.5 text-machined-silver">
+                    <Calendar className="w-3.5 h-3.5 text-nitro-amber" />
+                    DOB: {new Date(user.dateOfBirth).toLocaleDateString()}
+                  </span>
+                )}
               </div>
             </div>
 
-            <button
-              onClick={logout}
-              className="outline-btn text-xs py-2 px-4 flex items-center gap-2 border-red-500/40 text-red-400 hover:bg-red-500/10"
-            >
-              <LogOut className="w-3.5 h-3.5" /> Sign Out
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`outline-btn text-xs py-2 px-4 flex items-center gap-2 transition-all ${
+                  activeTab === 'profile'
+                    ? 'border-nitro-amber bg-nitro-amber/15 text-nitro-amber'
+                    : 'border-nitro-amber/50 text-nitro-amber hover:bg-nitro-amber/10'
+                }`}
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Edit Profile
+              </button>
+              <button
+                onClick={logout}
+                className="outline-btn text-xs py-2 px-4 flex items-center gap-2 border-red-500/40 text-red-400 hover:bg-red-500/10"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Sign Out
+              </button>
+            </div>
           </div>
         </div>
 
@@ -312,6 +382,16 @@ export const CustomerAccount: React.FC = () => {
             }`}
           >
             <Package className="w-4 h-4" /> Orders & Mission Telemetry ({orders.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+              activeTab === 'profile'
+                ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
+                : 'border-transparent text-machined-dim hover:text-machined-titanium'
+            }`}
+          >
+            <User className="w-4 h-4" /> Edit Profile & Telemetry
           </button>
           <button
             onClick={() => setActiveTab('addresses')}
@@ -575,6 +655,160 @@ export const CustomerAccount: React.FC = () => {
                 >
                   {changingPass ? 'Updating Key...' : 'Update Password'}
                 </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: EDIT PROFILE */}
+        {activeTab === 'profile' && (
+          <div className="max-w-2xl">
+            <div className="chassis-card p-6 sm:p-8 border-nitro-amber/30">
+              <div className="flex items-center gap-2 mb-6 pb-3 border-b border-fastener-border">
+                <UserCheck className="w-5 h-5 text-nitro-amber" />
+                <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
+                  Personal Telemetry & Profile Settings
+                </h2>
+              </div>
+
+              <form onSubmit={handleUpdateProfile} className="space-y-6">
+                {/* Avatar Selection Grid */}
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-2">
+                    Select Tactical Avatar
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-3">
+                    {DEFAULT_AVATARS.map((av) => {
+                      const isSelected = editAvatar === av.url;
+                      return (
+                        <div
+                          key={av.id}
+                          onClick={() => setEditAvatar(av.url)}
+                          className={`cursor-pointer rounded-lg p-2 text-center border transition-all ${
+                            isSelected
+                              ? 'border-nitro-amber bg-nitro-amber/15 shadow-nitro-sm ring-1 ring-nitro-amber'
+                              : 'border-fastener-border bg-carbon-elevated hover:border-machined-dim'
+                          }`}
+                        >
+                          <img
+                            src={av.url}
+                            alt={av.label}
+                            className="w-12 h-12 rounded-full mx-auto mb-1.5 object-cover"
+                          />
+                          <p className="text-[10px] font-mono text-machined-silver truncate">
+                            {av.label}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase text-machined-dim mb-1">
+                      Or Custom Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editAvatar}
+                      onChange={(e) => setEditAvatar(e.target.value)}
+                      placeholder="https://example.com/avatar.jpg"
+                      className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-machined-dim absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        required
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Sakil Ahmed"
+                        className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 pl-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                      BD Mobile (11 Digits)
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-machined-dim absolute left-3 top-3" />
+                      <input
+                        type="tel"
+                        required
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder="017XXXXXXXX"
+                        className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 pl-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                      Gender
+                    </label>
+                    <select
+                      value={editGender}
+                      onChange={(e) => setEditGender(e.target.value as any)}
+                      className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    >
+                      <option value="MALE" className="bg-carbon-card text-machined-titanium">Male</option>
+                      <option value="FEMALE" className="bg-carbon-card text-machined-titanium">Female</option>
+                      <option value="OTHER" className="bg-carbon-card text-machined-titanium">Other</option>
+                      <option value="PREFER_NOT_TO_SAY" className="bg-carbon-card text-machined-titanium">Prefer Not To Say</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      value={editDob}
+                      onChange={(e) => setEditDob(e.target.value)}
+                      className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                    Registered Email (Fixed)
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-machined-dim absolute left-3 top-3" />
+                    <input
+                      type="email"
+                      disabled
+                      value={user?.email || ''}
+                      className="w-full bg-carbon-slate border border-fastener-border rounded p-2.5 pl-9 text-xs text-machined-dim font-mono cursor-not-allowed opacity-80"
+                    />
+                  </div>
+                  <p className="text-[10px] font-mono text-machined-dim mt-1">
+                    Contact mission command if you require email re-calibration.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="nitro-btn w-full text-xs py-3 flex items-center justify-center gap-2"
+                  >
+                    {savingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
+                  </button>
+                </div>
               </form>
             </div>
           </div>

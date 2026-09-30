@@ -143,7 +143,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
               to="/login"
               className="outline-btn text-xs py-1.5 px-3.5 hidden sm:inline-flex"
             >
-              Sign In
+              Login
             </Link>
           )}
         </div>
@@ -274,7 +274,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                   onClick={() => setBurgerOpen(false)}
                   className="w-full nitro-btn text-xs py-2.5 text-center block shadow-nitro-sm"
                 >
-                  Pilot Sign In
+                  Login
                 </Link>
               )}
             </div>

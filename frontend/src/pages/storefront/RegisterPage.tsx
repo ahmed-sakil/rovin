@@ -4,11 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { BrandLogo } from '../../components/brand/BrandLogo';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
-import { User, Mail, Phone, Lock, KeyRound, ArrowRight, ShieldCheck, CheckSquare, Square } from 'lucide-react';
+import { User, Mail, Phone, Lock, KeyRound, ArrowRight, ShieldCheck, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const RegisterPage: React.FC = () => {
-  usePageTitle('Pilot Registration', '6-Digit OTP Secure Account Setup');
+  usePageTitle('Register', '6-Digit OTP Secure Account Setup');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
@@ -22,8 +22,10 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
-  const [dateOfBirth, setDateOfBirth] = useState('');
   const [otp, setOtp] = useState('');
   const [agreePolicy, setAgreePolicy] = useState(false);
 
@@ -42,7 +44,11 @@ export const RegisterPage: React.FC = () => {
       return;
     }
     if (password.length < 6) {
-      toast.error('Weak Security Key', { description: 'Password must be at least 6 characters.' });
+      toast.error('Weak Password', { description: 'Password must be at least 6 characters.' });
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error('Password Mismatch', { description: 'Password and Confirm Password do not match.' });
       return;
     }
 
@@ -66,7 +72,6 @@ export const RegisterPage: React.FC = () => {
       phone,
       password,
       gender,
-      dateOfBirth: dateOfBirth || undefined,
       otp,
     });
     setLoading(false);
@@ -96,7 +101,7 @@ export const RegisterPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <BrandLogo variant="icon" size="sm" />
               <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-                {step === 1 ? 'Create Pilot Account' : 'Verify 6-Digit Code'}
+                {step === 1 ? 'Create Account' : 'Verify 6-Digit Code'}
               </h2>
             </div>
             <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber text-[10px]">
@@ -108,7 +113,7 @@ export const RegisterPage: React.FC = () => {
             <form onSubmit={handleSendOtp} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                  Full Pilot Name
+                  Full Name
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-machined-dim absolute left-3 top-2.5" />
@@ -123,7 +128,7 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
                     Email Address
@@ -139,7 +144,7 @@ export const RegisterPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                    BD Phone Number
+                    BD Mobile (11 Digits)
                   </label>
                   <input
                     type="tel"
@@ -152,48 +157,70 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                    Gender (Avatar)
-                  </label>
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value as any)}
-                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
-                  >
-                    <option value="MALE" className="bg-carbon-card text-machined-titanium">Male</option>
-                    <option value="FEMALE" className="bg-carbon-card text-machined-titanium">Female</option>
-                    <option value="OTHER" className="bg-carbon-card text-machined-titanium">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                    Date of Birth (Optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                  Security Password (Min 6 chars)
+                  Gender
                 </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-machined-dim absolute left-3 top-2.5" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 pl-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
-                  />
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value as any)}
+                  className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                >
+                  <option value="MALE" className="bg-carbon-card text-machined-titanium">Male</option>
+                  <option value="FEMALE" className="bg-carbon-card text-machined-titanium">Female</option>
+                  <option value="OTHER" className="bg-carbon-card text-machined-titanium">Other</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
+                    Password (Min 6)
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-machined-dim absolute left-3 top-2.5" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 pl-9 pr-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-machined-dim hover:text-machined-silver transition-colors"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-machined-dim absolute left-3 top-2.5" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 pl-9 pr-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-2.5 text-machined-dim hover:text-machined-silver transition-colors"
+                      title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -223,7 +250,7 @@ export const RegisterPage: React.FC = () => {
                 disabled={loading}
                 className="nitro-btn w-full text-xs py-3 mt-4 flex items-center justify-center gap-2"
               >
-                {loading ? 'Transmitting Code...' : 'Dispatch 6-Digit Code'}
+                {loading ? 'Sending OTP...' : 'Send OTP'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>

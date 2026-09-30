@@ -86,7 +86,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAuth }) 
           className="flex flex-col items-center gap-1 text-[10px] font-mono tracking-wider text-machined-dim hover:text-nitro-amber"
         >
           <User className="w-5 h-5" />
-          <span>SIGN IN</span>
+          <span>LOGIN</span>
         </Link>
       )}
     </nav>

@@ -7,6 +7,7 @@ import {
   resetPassword,
   getMe,
   changePassword,
+  updateProfile,
 } from '../controllers/authController.js';
 import {
   getAddresses,
@@ -21,6 +22,7 @@ const router = Router();
 // Public OTP & Registration
 router.post('/register-otp', otpLimiter, sendRegisterOtp);
 router.post('/register', authLimiter, verifyAndRegister);
+router.post('/verify-and-register', authLimiter, verifyAndRegister);
 router.post('/login', authLimiter, login);
 
 // Password Recovery
@@ -29,6 +31,7 @@ router.post('/reset-password', authLimiter, resetPassword);
 
 // Authenticated Routes
 router.get('/me', authenticateUser, getMe);
+router.put('/profile', authenticateUser, updateProfile);
 router.post('/change-password', authenticateUser, changePassword);
 
 // Saved Addresses

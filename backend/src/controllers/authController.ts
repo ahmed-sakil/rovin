@@ -13,6 +13,7 @@ import {
   ForgotPasswordOtpSchema,
   ResetPasswordSchema,
   ChangePasswordSchema,
+  UpdateProfileSchema,
 } from '../utils/validators.js';
 
 // Helper: Generate secure 6-digit random code
@@ -541,5 +542,80 @@ export async function changePassword(req: AuthenticatedRequest, res: Response): 
   } catch (error: any) {
     console.error('[changePassword Error]:', error);
     res.status(500).json({ success: false, message: 'Failed to update password.' });
+  }
+}
+
+/**
+ * 8. Authenticated User: Update Personal Profile Details
+ */
+export async function updateProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const parsed = UpdateProfileSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, errors: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    const { name, phone, gender, dateOfBirth, profileImageUrl } = parsed.data;
+
+    // Check phone collision if phone is being changed
+    if (phone) {
+      const conflict = await prisma.user.findFirst({
+        where: {
+          phone,
+          id: { not: req.user.id },
+        },
+      });
+      if (conflict) {
+        res.status(409).json({
+          success: false,
+          message: 'This mobile number is already registered to another account.',
+        });
+        return;
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(phone !== undefined ? { phone } : {}),
+        ...(gender !== undefined ? { gender } : {}),
+        ...(dateOfBirth !== undefined ? { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null } : {}),
+        ...(profileImageUrl !== undefined ? { profileImageUrl: profileImageUrl || null } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        gender: true,
+        dateOfBirth: true,
+        profileImageUrl: true,
+        role: true,
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        addresses: true,
+        createdAt: true,
+      },
+    });
+
+    await logUserActivity(req.user.id, 'PROFILE_UPDATE', req, {
+      updatedFields: Object.keys(parsed.data),
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      user: updatedUser,
+    });
+  } catch (error: any) {
+    console.error('[updateProfile Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to update profile.' });
   }
 }

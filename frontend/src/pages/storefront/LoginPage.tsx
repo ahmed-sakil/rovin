@@ -4,10 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { BrandLogo } from '../../components/brand/BrandLogo';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
-import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  usePageTitle('Pilot Sign In', 'Secure Authentication Terminal');
+  usePageTitle('Login', 'Secure Account Authentication');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
@@ -15,6 +15,7 @@ export const LoginPage: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export const LoginPage: React.FC = () => {
             <BrandLogo variant="full" size="lg" className="mx-auto mb-2" />
           </Link>
           <p className="text-xs font-mono text-machined-dim uppercase tracking-wider">
-            ROVIN PILOT COMMAND GATEWAY
+            ROVIN PILOT LOGIN
           </p>
         </div>
 
@@ -56,7 +57,7 @@ export const LoginPage: React.FC = () => {
           <div className="flex items-center gap-2 mb-6 pb-3 border-b border-fastener-border">
             <BrandLogo variant="icon" size="sm" />
             <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-              Pilot Sign In
+              Login
             </h2>
           </div>
 
@@ -81,19 +82,27 @@ export const LoginPage: React.FC = () => {
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="text-xs font-mono uppercase text-machined-muted">
-                  Security Key (Password)
+                  Password
                 </label>
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-machined-dim absolute left-3 top-3" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 pl-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none transition-colors"
+                  className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 pl-9 pr-9 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none transition-colors"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-machined-dim hover:text-machined-silver transition-colors"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -102,18 +111,18 @@ export const LoginPage: React.FC = () => {
               disabled={loading}
               className="nitro-btn w-full text-xs py-3 mt-4 flex items-center justify-center gap-2"
             >
-              {loading ? 'Authenticating Pilot...' : 'Authorize Session'}
+              {loading ? 'Logging In...' : 'Login'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
           <div className="mt-6 pt-4 border-t border-fastener-border text-center text-xs font-mono text-machined-dim">
-            <span>Need a pilot callsign? </span>
+            <span>Don't have an account? </span>
             <Link
               to={`/register${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
               className="text-nitro-amber font-bold hover:underline"
             >
-              Create Account with 6-Digit Code
+              Register with OTP
             </Link>
           </div>
         </div>

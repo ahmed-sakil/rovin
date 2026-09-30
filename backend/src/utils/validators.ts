@@ -38,3 +38,11 @@ export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: z.string().min(6, 'New password must be at least 6 characters'),
 });
+
+export const UpdateProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  phone: z.string().regex(BD_PHONE_REGEX, 'Enter a valid 11-digit BD mobile number').optional(),
+  gender: z.nativeEnum(Gender).optional(),
+  dateOfBirth: z.string().nullable().optional(),
+  profileImageUrl: z.string().nullable().optional(),
+});
