@@ -352,3 +352,131 @@ export async function validateCoupon(req: Request, res: Response): Promise<void>
     res.status(500).json({ success: false, message: 'Failed to validate coupon' });
   }
 }
+
+import { getCourierService } from '../services/couriers/index.js';
+
+export async function dispatchToCourier(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { provider = 'STEADFAST', note } = req.body;
+
+    const order = await prisma.order.findUnique({
+      where: { id: String(id) },
+      include: { orderItems: { include: { product: true } } },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    const courierService = getCourierService(provider);
+    const shipmentResult = await courierService.createShipment({
+      invoice: order.orderNumber,
+      recipientName: order.customerName,
+      recipientPhone: order.customerPhone,
+      recipientAddress: order.deliveryAddress,
+      district: order.district,
+      thana: order.thana,
+      codAmount: order.paymentMethod === 'COD' ? order.totalAmount : 0,
+      note,
+      itemDescription: order.orderItems.map((i) => `${i.product.title} (x${i.quantity})`).join(', '),
+    });
+
+    if (!shipmentResult.success) {
+      res.status(502).json({
+        success: false,
+        message: `Third-Party Courier Error: ${shipmentResult.error}`,
+        error: shipmentResult.error,
+        allowManualOverride: true,
+      });
+      return;
+    }
+
+    // Save Consignment Record
+    const consignment = await prisma.courierConsignment.create({
+      data: {
+        orderId: order.id,
+        courierProvider: shipmentResult.courierProvider,
+        consignmentId: shipmentResult.consignmentId,
+        trackingCode: shipmentResult.trackingCode,
+        status: shipmentResult.status,
+        codAmount: order.paymentMethod === 'COD' ? order.totalAmount : 0,
+        deliveryFee: shipmentResult.deliveryFee || order.deliveryCharge,
+        rawWebhookData: shipmentResult.rawResponse ? JSON.parse(JSON.stringify(shipmentResult.rawResponse)) : undefined,
+      },
+    });
+
+    // Advance Order Status to SHIPPED
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { orderStatus: 'SHIPPED' },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Order successfully dispatched with ${provider}. Consignment: ${shipmentResult.consignmentId}`,
+      consignment,
+    });
+  } catch (error: any) {
+    console.error('[dispatchToCourier Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to process courier dispatch' });
+  }
+}
+
+export async function manualConsignmentOverride(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { courierProvider, consignmentId, trackingCode } = req.body;
+
+    if (!consignmentId || !trackingCode) {
+      res.status(400).json({ success: false, message: 'Consignment ID and Tracking Code are required' });
+      return;
+    }
+
+    const order = await prisma.order.findUnique({ where: { id: String(id) } });
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    const consignment = await prisma.courierConsignment.create({
+      data: {
+        orderId: order.id,
+        courierProvider: courierProvider || 'MANUAL',
+        consignmentId: String(consignmentId).trim(),
+        trackingCode: String(trackingCode).trim(),
+        status: 'manual_override',
+        codAmount: order.paymentMethod === 'COD' ? order.totalAmount : 0,
+        deliveryFee: order.deliveryCharge,
+        rawWebhookData: { note: 'Admin manual consignment override applied.' },
+      },
+    });
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { orderStatus: 'SHIPPED' },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Manual consignment override registered. Order marked as SHIPPED.',
+      consignment,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to apply manual override' });
+  }
+}
+
+export async function markLabelPrinted(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    await prisma.courierConsignment.updateMany({
+      where: { orderId: String(id) },
+      data: { labelPrinted: true },
+    });
+    res.status(200).json({ success: true, message: 'Label print status recorded' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to record label print status' });
+  }
+}
