@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 
 interface DailyReport {
+  date?: string;
   todayNewUsers: number;
   todayUniqueVisitors: number;
   todayOrdersCount: number;
@@ -45,20 +46,29 @@ interface DashboardStats {
 
 export const AdminDashboard: React.FC = () => {
   usePageTitle('Admin Command Telemetry', 'Comprehensive e-commerce analytics and inventory ledger');
+  const todayStr = new Date().toISOString().slice(0, 10);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
-  const fetchStats = async () => {
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const [dailyReport, setDailyReport] = useState<DailyReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const fetchStats = async (dateQuery?: string) => {
     setLoading(true);
     const token = localStorage.getItem('rovin_token');
+    const targetDate = dateQuery || selectedDate;
     try {
-      const res = await fetch('/api/admin/stats', {
+      const res = await fetch(`/api/admin/stats?date=${targetDate}`, {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
       const data = await res.json();
       if (data.success) {
         setStats(data.stats);
+        if (data.stats.dailyReport) {
+          setDailyReport(data.stats.dailyReport);
+        }
       }
     } catch {
       toast.error('Telemetry Sync Error', { description: 'Failed to aggregate dashboard analytics.' });
@@ -67,11 +77,33 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDateChange = async (newDate: string) => {
+    setSelectedDate(newDate);
+    setReportLoading(true);
+    const token = localStorage.getItem('rovin_token');
+    try {
+      const res = await fetch(`/api/admin/daily-report?date=${newDate}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const data = await res.json();
+      if (data.success && data.report) {
+        setDailyReport(data.report);
+      } else {
+        toast.error('Telemetry Error', { description: data.message || 'Failed to retrieve daily report.' });
+      }
+    } catch {
+      toast.error('Network Error', { description: 'Failed to fetch day metrics.' });
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchStats();
+    fetchStats(todayStr);
   }, []);
 
   const maxSale = stats?.salesTrend.reduce((max, p) => Math.max(max, p.sales), 1) || 50000;
+  const activeReport = dailyReport ?? stats?.dailyReport;
 
   return (
     <AdminLayout
@@ -79,31 +111,61 @@ export const AdminDashboard: React.FC = () => {
       comment="Real-time multi-channel overview: revenue, inventory health, courier pipeline, and audit logs."
       action={
         <button
-          onClick={fetchStats}
-          disabled={loading}
+          onClick={() => {
+            fetchStats(selectedDate);
+            handleDateChange(selectedDate);
+          }}
+          disabled={loading || reportLoading}
           className="outline-btn flex items-center gap-2 py-2 px-3 text-xs"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading || reportLoading ? 'animate-spin' : ''}`} />
           Recalibrate Telemetry
         </button>
       }
     >
-      {/* 0. Daily Performance Report (Today) */}
+      {/* 0. Daily Performance Report (Selectable Date) */}
       <div className="chassis-card p-5 mb-6 border-nitro-amber/30 bg-gradient-to-r from-carbon-card via-carbon-slate/60 to-carbon-card">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-fastener-border gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-fastener-border gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-            <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-nitro-amber" />
-              Daily Performance Report (Today)
-            </h2>
+            <div className={`w-2.5 h-2.5 rounded-full ${reportLoading ? 'bg-nitro-amber animate-ping' : 'bg-emerald-400 animate-pulse'}`}></div>
+            <div>
+              <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-nitro-amber" />
+                Daily Performance Telemetry
+              </h2>
+              <p className="text-[11px] font-mono text-machined-dim mt-0.5">
+                {selectedDate === todayStr ? "Active operations for today (Real-time)" : `Historical operations for ${selectedDate}`}
+              </p>
+            </div>
           </div>
-          <span className="text-[11px] font-mono text-nitro-amber bg-nitro-amber/10 px-2.5 py-1 rounded border border-nitro-amber/30">
-            {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
+
+          <div className="flex items-center gap-2">
+            {selectedDate !== todayStr && (
+              <button
+                type="button"
+                onClick={() => handleDateChange(todayStr)}
+                className="text-[11px] font-mono px-2.5 py-1 rounded bg-carbon-elevated border border-fastener-border text-machined-dim hover:text-nitro-amber hover:border-nitro-amber/40 transition-colors"
+              >
+                Reset Today
+              </button>
+            )}
+            <div className="flex items-center gap-2 bg-carbon-slate border border-nitro-amber/40 rounded px-2.5 py-1 shadow-inner">
+              <Calendar className="w-3.5 h-3.5 text-nitro-amber shrink-0" />
+              <input
+                type="date"
+                value={selectedDate}
+                max={todayStr}
+                onChange={(e) => {
+                  if (e.target.value) handleDateChange(e.target.value);
+                }}
+                className="bg-transparent text-xs text-nitro-amber font-mono font-bold outline-none cursor-pointer"
+                title="Select date for operational telemetry"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 transition-opacity ${reportLoading ? 'opacity-50' : 'opacity-100'}`}>
           {/* New Accounts Today */}
           <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between">
             <div className="flex items-center justify-between text-machined-dim mb-1">
@@ -111,9 +173,9 @@ export const AdminDashboard: React.FC = () => {
               <Users className="w-3.5 h-3.5 text-nitro-amber" />
             </div>
             <div className="font-orbitron font-black text-xl text-machined-titanium">
-              {stats?.dailyReport?.todayNewUsers ?? 0}
+              {activeReport?.todayNewUsers ?? 0}
             </div>
-            <span className="text-[10px] font-mono text-machined-dim mt-1">Registrations today</span>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Registrations</span>
           </div>
 
           {/* Unique IP Visitors Today */}
@@ -123,7 +185,7 @@ export const AdminDashboard: React.FC = () => {
               <Globe className="w-3.5 h-3.5 text-cyan-400" />
             </div>
             <div className="font-orbitron font-black text-xl text-cyan-400">
-              {stats?.dailyReport?.todayUniqueVisitors ?? 0}
+              {activeReport?.todayUniqueVisitors ?? 0}
             </div>
             <span className="text-[10px] font-mono text-machined-dim mt-1">Distinct client IPs</span>
           </div>
@@ -135,9 +197,9 @@ export const AdminDashboard: React.FC = () => {
               <ShoppingBag className="w-3.5 h-3.5 text-nitro-amber" />
             </div>
             <div className="font-orbitron font-black text-xl text-nitro-amber">
-              {stats?.dailyReport?.todayOrdersCount ?? 0}
+              {activeReport?.todayOrdersCount ?? 0}
             </div>
-            <span className="text-[10px] font-mono text-machined-dim mt-1">Received today</span>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Received that day</span>
           </div>
 
           {/* Orders Completed Today */}
@@ -147,21 +209,21 @@ export const AdminDashboard: React.FC = () => {
               <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
             </div>
             <div className="font-orbitron font-black text-xl text-emerald-400">
-              {stats?.dailyReport?.todayCompletedOrders ?? 0}
+              {activeReport?.todayCompletedOrders ?? 0}
             </div>
-            <span className="text-[10px] font-mono text-machined-dim mt-1">Delivered today</span>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Delivered orders</span>
           </div>
 
           {/* Today's Revenue */}
           <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between col-span-2 sm:col-span-1">
             <div className="flex items-center justify-between text-machined-dim mb-1">
-              <span className="text-[11px] font-mono uppercase">Today's Revenue</span>
+              <span className="text-[11px] font-mono uppercase">Day Revenue</span>
               <DollarSign className="w-3.5 h-3.5 text-nitro-amber" />
             </div>
             <div className="font-orbitron font-black text-xl text-machined-titanium truncate">
-              ৳{(stats?.dailyReport?.todayRevenue ?? 0).toLocaleString()}
+              ৳{(activeReport?.todayRevenue ?? 0).toLocaleString()}
             </div>
-            <span className="text-[10px] font-mono text-emerald-400 mt-1">Gross sales today</span>
+            <span className="text-[10px] font-mono text-emerald-400 mt-1">Gross sales</span>
           </div>
         </div>
       </div>

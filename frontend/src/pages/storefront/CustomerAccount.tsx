@@ -1,32 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth, UserAddress } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
 import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { BrandLogo } from '../../components/brand/BrandLogo';
 import {
-  Package,
   MapPin,
   User,
   Shield,
   LogOut,
   Plus,
   Trash2,
-  Clock,
-  Truck,
-  ExternalLink,
-  ChevronRight,
-  ShoppingBag,
-  CheckCircle2,
   Calendar,
   Phone,
   Mail,
   Lock,
   Edit3,
   UserCheck,
-  Camera,
   Upload,
   Loader2,
 } from 'lucide-react';
@@ -48,57 +39,12 @@ const BD_DISTRICTS = [
   'Jessore', 'Kushtia', 'Pabna', 'Dinajpur', 'Other District (All BD Covered)'
 ];
 
-interface OrderItem {
-  id: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  chosenColor?: string;
-  chosenSize?: string;
-  product: {
-    id: string;
-    title: string;
-    images: string[];
-    slug: string;
-  };
-}
-
-interface CourierConsignment {
-  id: string;
-  courier: string;
-  consignmentId: string;
-  trackingCode?: string;
-  status: string;
-}
-
-interface OrderRecord {
-  id: string;
-  orderNumber: string;
-  customerName: string;
-  customerPhone: string;
-  deliveryAddress: string;
-  district: string;
-  thana: string;
-  subtotal: number;
-  deliveryCharge: number;
-  discountAmount: number;
-  totalAmount: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  orderStatus: string;
-  createdAt: string;
-  orderItems: OrderItem[];
-  consignments: CourierConsignment[];
-}
-
 export const CustomerAccount: React.FC = () => {
   usePageTitle('My Account', 'Profile, Delivery Addresses & Security');
   const navigate = useNavigate();
   const { user, token, isAuthenticated, logout, refreshProfile, updateProfile } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'security' | 'profile'>('profile');
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'security'>('profile');
 
   // Profile Edit State
   const [editName, setEditName] = useState(user?.name || '');
@@ -241,30 +187,6 @@ export const CustomerAccount: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Fetch personal orders
-  const fetchMyOrders = async () => {
-    if (!token) return;
-    setLoadingOrders(true);
-    try {
-      const res = await fetch('/api/orders/my-orders', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setOrders(data.orders || []);
-      }
-    } catch {
-      toast.error('Telemetry Error', { description: 'Failed to retrieve mission history.' });
-    } finally {
-      setLoadingOrders(false);
-    }
-  };
-
-  useEffect(() => {
-    if (token && activeTab === 'orders') {
-      fetchMyOrders();
-    }
-  }, [token, activeTab]);
 
     // Add Address
   const handleSaveAddress = async (e: React.FormEvent) => {
@@ -361,47 +283,30 @@ export const CustomerAccount: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return <span className="telemetry-tag border-yellow-500/40 text-yellow-500">PENDING CONFIRMATION</span>;
-      case 'PROCESSING':
-        return <span className="telemetry-tag border-blue-500/40 text-blue-400">IN ASSEMBLY</span>;
-      case 'SHIPPED':
-        return <span className="telemetry-tag border-purple-500/40 text-purple-400">DISPATCHED IN TRANSIT</span>;
-      case 'DELIVERED':
-        return <span className="telemetry-tag border-green-500/40 text-green-400">MISSION COMPLETED</span>;
-      case 'CANCELLED':
-        return <span className="telemetry-tag border-red-500/40 text-red-400">ABORTED</span>;
-      default:
-        return <span className="telemetry-tag">{status}</span>;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
       <StorefrontNavbar onOpenAuth={() => {}} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
-        {/* Customer Profile Banner */}
-        <div className="chassis-card p-6 sm:p-8 mb-8 border-nitro-amber/30 relative overflow-hidden">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
+        {/* Customer Profile Banner (Centralized) */}
+        <div className="chassis-card p-6 sm:p-8 mb-8 border-nitro-amber/30 relative overflow-hidden text-center">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-nitro-amber/10 to-transparent pointer-events-none rounded-bl-full" />
           
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
+          <div className="flex flex-col items-center text-center gap-4 relative z-10 max-w-xl mx-auto">
             <div className="relative">
               <img
                 src={user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
                 alt={user?.name || 'Customer'}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-nitro-amber object-cover shadow-nitro-sm"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-nitro-amber object-cover shadow-nitro-sm mx-auto"
               />
-              <div className="absolute -bottom-1 -right-1 bg-carbon-slate border border-nitro-amber/50 rounded-full p-1 text-nitro-amber" title="Verified Customer">
+              <div className="absolute -bottom-1 -right-1 bg-carbon-slate border border-nitro-amber/50 rounded-full p-1.5 text-nitro-amber" title="Verified Customer">
                 <Shield className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="flex-1 text-center sm:text-left">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
-                <h1 className="font-orbitron font-black text-2xl text-machined-titanium">
+            <div className="w-full">
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-1.5">
+                <h1 className="font-orbitron font-black text-2xl sm:text-3xl text-machined-titanium">
                   {user?.name || 'Customer'}
                 </h1>
                 <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber">
@@ -409,7 +314,7 @@ export const CustomerAccount: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-machined-silver font-mono mt-2">
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs text-machined-silver font-mono mt-3">
                 <span className="flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-nitro-amber" />
                   {user?.email}
@@ -432,10 +337,10 @@ export const CustomerAccount: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`outline-btn text-xs py-2 px-4 flex items-center gap-2 transition-all ${
+                className={`outline-btn text-xs py-2 px-5 flex items-center gap-2 transition-all ${
                   activeTab === 'profile'
                     ? 'border-nitro-amber bg-nitro-amber/15 text-nitro-amber'
                     : 'border-nitro-amber/50 text-nitro-amber hover:bg-nitro-amber/10'
@@ -445,7 +350,7 @@ export const CustomerAccount: React.FC = () => {
               </button>
               <button
                 onClick={logout}
-                className="outline-btn text-xs py-2 px-4 flex items-center gap-2 border-red-500/40 text-red-400 hover:bg-red-500/10"
+                className="outline-btn text-xs py-2 px-5 flex items-center gap-2 border-red-500/40 text-red-400 hover:bg-red-500/10"
               >
                 <LogOut className="w-3.5 h-3.5" /> Sign Out
               </button>
@@ -453,157 +358,46 @@ export const CustomerAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Navigation (Always Horizontal 4 Options on All Screen Sizes) */}
-        <div className="grid grid-cols-4 border-b border-fastener-border mb-8 gap-1 sm:gap-2">
+        {/* Tab Navigation (Centralized 3 Options) */}
+        <div className="max-w-md mx-auto grid grid-cols-3 border-b border-fastener-border mb-8 gap-2">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
               activeTab === 'profile'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Profile</span>
-          </button>
-          <button
-            onClick={() => navigate('/orders')}
-            className="flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center border-transparent text-machined-dim hover:text-nitro-amber"
-          >
-            <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Orders &rarr;</span>
+            <User className="w-4 h-4 shrink-0" />
+            <span>Profile</span>
           </button>
           <button
             onClick={() => setActiveTab('addresses')}
-            className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
               activeTab === 'addresses'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Addresses</span>
+            <MapPin className="w-4 h-4 shrink-0" />
+            <span>Addresses</span>
           </button>
           <button
             onClick={() => setActiveTab('security')}
-            className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
               activeTab === 'security'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Security</span>
+            <Lock className="w-4 h-4 shrink-0" />
+            <span>Security</span>
           </button>
         </div>
 
-        {/* TAB 1: MISSION ORDERS */}
-        {activeTab === 'orders' && (
-          <div>
-            {loadingOrders ? (
-              <div className="chassis-card p-12 text-center text-machined-dim font-mono text-sm">
-                Accessing encrypted mission logs...
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="chassis-card p-12 text-center">
-                <Package className="w-12 h-12 text-machined-dim mx-auto mb-3 opacity-50" />
-                <h3 className="font-orbitron font-bold text-lg text-machined-titanium mb-2">
-                  No Active Missions Found
-                </h3>
-                <p className="text-xs text-machined-muted max-w-sm mx-auto mb-6">
-                  You have not deployed any precision RC drift units or hardware orders yet.
-                </p>
-                <Link to="/products" className="nitro-btn inline-flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4" /> Explore Equipment Hangar
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {orders.map((ord) => (
-                  <div key={ord.id} className="chassis-card p-5 hover:border-nitro-amber/40 transition-all">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-fastener-border pb-4 mb-4">
-                      <div>
-                        <span className="font-mono text-xs text-nitro-amber font-bold block">
-                          {ord.orderNumber}
-                        </span>
-                        <span className="text-[11px] font-mono text-machined-dim">
-                          Ordered: {new Date(ord.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {getStatusBadge(ord.orderStatus)}
-                        <span className="font-orbitron font-black text-sm text-machined-titanium">
-                          ৳{ord.totalAmount.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Consignment Live Tracking Banner if available */}
-                    {ord.consignments && ord.consignments.length > 0 && (
-                      <div className="bg-carbon-elevated border border-nitro-amber/30 rounded p-3 mb-4 flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-nitro-amber animate-pulse" />
-                          <span className="font-mono text-xs text-machined-titanium">
-                            Courier Dispatch: <strong className="text-nitro-amber uppercase">{ord.consignments[0].courier}</strong>
-                          </span>
-                          <span className="telemetry-tag text-[10px]">
-                            TRACKING: {ord.consignments[0].trackingCode || ord.consignments[0].consignmentId}
-                          </span>
-                        </div>
-                        <span className="font-mono text-xs text-machined-silver">
-                          Status: <span className="text-nitro-amber font-bold">{ord.consignments[0].status}</span>
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Items List */}
-                    <div className="space-y-3">
-                      {ord.orderItems.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between text-xs font-mono">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={item.product?.images?.[0] || '/brand/rovin-icon.svg'}
-                              alt={item.product?.title || 'Gear'}
-                              className="w-10 h-10 rounded object-cover border border-fastener-border"
-                            />
-                            <div>
-                              <Link
-                                to={`/product/${item.product?.slug}`}
-                                className="font-bold text-machined-titanium hover:text-nitro-amber transition-colors line-clamp-1"
-                              >
-                                {item.product?.title}
-                              </Link>
-                              <div className="text-[11px] text-machined-dim">
-                                Qty: {item.quantity} {item.chosenColor ? `• Color: ${item.chosenColor}` : ''}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="font-orbitron text-machined-silver font-semibold">
-                            ৳{item.totalPrice.toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Delivery Destination */}
-                    <div className="mt-4 pt-3 border-t border-fastener-border flex flex-wrap items-center justify-between text-[11px] text-machined-dim font-mono">
-                      <span>
-                        Destination: {ord.deliveryAddress}, {ord.thana}, {ord.district}
-                      </span>
-                      <span>
-                        Payment: {ord.paymentMethod} ({ord.paymentStatus})
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 2: SAVED ADDRESSES */}
+        {/* TAB 1: SAVED ADDRESSES */}
         {activeTab === 'addresses' && (
-          <div>
+          <div className="max-w-2xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="font-orbitron font-bold text-base text-machined-titanium">
@@ -676,16 +470,21 @@ export const CustomerAccount: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: SECURITY & KEY */}
+        {/* TAB 2: SECURITY & KEY */}
         {activeTab === 'security' && (
-          <div className="max-w-md">
-            <div className="chassis-card p-6">
-              <h3 className="font-orbitron font-bold text-base text-machined-titanium mb-1">
-                Recalibrate Security Key
-              </h3>
-              <p className="text-xs text-machined-dim font-mono mb-6">
-                Update the password guarding your ROVIN account.
-              </p>
+          <div className="max-w-md mx-auto">
+            <div className="chassis-card p-6 sm:p-8">
+              <div className="text-center mb-6">
+                <div className="w-10 h-10 rounded-full bg-nitro-amber/10 border border-nitro-amber/30 flex items-center justify-center mx-auto mb-2">
+                  <Lock className="w-5 h-5 text-nitro-amber" />
+                </div>
+                <h3 className="font-orbitron font-bold text-base text-machined-titanium mb-1">
+                  Recalibrate Security Key
+                </h3>
+                <p className="text-xs text-machined-dim font-mono">
+                  Update the password guarding your ROVIN account.
+                </p>
+              </div>
 
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div>
@@ -742,11 +541,11 @@ export const CustomerAccount: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: EDIT PROFILE */}
+        {/* TAB 3: EDIT PROFILE */}
         {activeTab === 'profile' && (
-          <div className="max-w-2xl">
+          <div className="max-w-2xl mx-auto">
             <div className="chassis-card p-6 sm:p-8 border-nitro-amber/30">
-              <div className="flex items-center gap-2 mb-6 pb-3 border-b border-fastener-border">
+              <div className="flex items-center justify-center gap-2 mb-6 pb-3 border-b border-fastener-border text-center">
                 <UserCheck className="w-5 h-5 text-nitro-amber" />
                 <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
                   Personal Telemetry & Profile Settings

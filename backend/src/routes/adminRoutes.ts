@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getDashboardStats,
+  getDailyReport,
   getSettings,
   updateSettings,
   getUsers,
@@ -15,6 +16,7 @@ const router = Router();
 
 // Dashboard Telemetry & Stats
 router.get('/stats', authenticateUser, requireRole(['ADMIN', 'STAFF']), getDashboardStats);
+router.get('/daily-report', authenticateUser, requireRole(['ADMIN', 'STAFF']), getDailyReport);
 
 // System Settings & Delivery Charges
 router.get('/settings', getSettings);
