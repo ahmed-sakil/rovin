@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { BD_PHONE_REGEX } from '../utils/validators.js';
 import { OrderStatus, PaymentMethod } from '@prisma/client';
 import { AuthenticatedRequest } from '../middlewares/auth.js';
+import { logUserActivity } from '../middlewares/activityLogger.js';
 
 const CreateOrderSchema = z.object({
   customerName: z.string().min(2, 'Name is required'),
@@ -196,6 +197,14 @@ export async function createOrder(req: AuthenticatedRequest, res: Response): Pro
       return created;
     });
 
+    // Security Audit Log: Record order creation
+    await logUserActivity(currentUserId, 'ORDER_CREATED', req as any, {
+      orderNumber: newOrder.orderNumber,
+      totalAmount: newOrder.totalAmount,
+      paymentMethod: newOrder.paymentMethod,
+      itemCount: items.length,
+    });
+
     res.status(201).json({
       success: true,
       message: `Order #${newOrder.orderNumber} placed successfully!`,
@@ -297,6 +306,13 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
         }
       });
 
+      await logUserActivity((req as any).user?.id, 'ORDER_STATUS_UPDATED', req as any, {
+        orderId: id,
+        orderNumber: existing.orderNumber,
+        previousStatus: existing.orderStatus,
+        newStatus: 'CANCELLED',
+      });
+
       res.status(200).json({ success: true, message: 'Order cancelled and stock restored to inventory.' });
       return;
     }
@@ -304,6 +320,13 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
     const updated = await prisma.order.update({
       where: { id: String(id) },
       data: { orderStatus },
+    });
+
+    await logUserActivity((req as any).user?.id, 'ORDER_STATUS_UPDATED', req as any, {
+      orderId: id,
+      orderNumber: existing.orderNumber,
+      previousStatus: existing.orderStatus,
+      newStatus: orderStatus,
     });
 
     res.status(200).json({ success: true, message: `Status updated to ${orderStatus}`, order: updated });
@@ -520,4 +543,106 @@ export async function getMyOrders(req: AuthenticatedRequest, res: Response): Pro
     });
   }
 }
+
+/**
+ * Delete Order (Admin Only)
+ */
+export async function deleteOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    const order = await prisma.order.findUnique({
+      where: { id: String(id) },
+      include: { orderItems: true },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    // If order was not cancelled, return stock to products
+    if (order.orderStatus !== 'CANCELLED') {
+      for (const item of order.orderItems) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { stockQuantity: { increment: item.quantity } },
+        });
+      }
+    }
+
+    // Delete consignments & order items, then order
+    await prisma.courierConsignment.deleteMany({ where: { orderId: String(id) } });
+    await prisma.orderItem.deleteMany({ where: { orderId: String(id) } });
+    await prisma.order.delete({ where: { id: String(id) } });
+
+    await logUserActivity(req.user?.id || null, 'ORDER_DELETED', req as any, {
+      orderId: id,
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+    });
+
+    res.status(200).json({ success: true, message: `Order #${order.orderNumber} deleted permanently.` });
+  } catch (error: any) {
+    console.error('[deleteOrder Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete order' });
+  }
+}
+
+/**
+ * Customer Self-Cancel Pending Order
+ */
+export async function customerCancelOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    const order = await prisma.order.findFirst({
+      where: { id: String(id), userId },
+      include: { orderItems: true },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found or unauthorized' });
+      return;
+    }
+
+    if (order.orderStatus !== 'PENDING') {
+      res.status(400).json({
+        success: false,
+        message: 'Order cannot be cancelled because it is already confirmed or dispatched.',
+      });
+      return;
+    }
+
+    // Restore stock and mark as CANCELLED
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: order.id },
+        data: { orderStatus: 'CANCELLED' },
+      });
+
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stockQuantity: { increment: item.quantity } },
+        });
+      }
+    });
+
+    await logUserActivity(userId || null, 'CUSTOMER_ORDER_CANCELLED', req as any, {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Order #${order.orderNumber} has been cancelled successfully.`,
+    });
+  } catch (error: any) {
+    console.error('[customerCancelOrder Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to cancel order' });
+  }
+}
+
 

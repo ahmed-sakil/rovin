@@ -127,7 +127,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
               <Link
                 to="/account"
                 className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-lg border border-fastener-border bg-carbon-card hover:border-nitro-amber transition-all"
-                title="Pilot Station"
+                title="My Account"
               >
                 <img
                   src={user.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
@@ -302,7 +302,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
             <div className="pt-4 border-t border-fastener-border space-y-3">
               <ThemeToggle showLabel className="w-full justify-between px-3" />
               <p className="text-[10px] font-mono text-machined-dim text-center uppercase tracking-widest">
-                ROVIN &bull; PRECISION TELEMETRY
+                ROVIN &bull; OFFICIAL STORE
               </p>
             </div>
           </div>

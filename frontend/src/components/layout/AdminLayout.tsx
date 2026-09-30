@@ -44,7 +44,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { label: 'Products & Stock', to: '/admin/products', icon: Boxes },
     { label: 'Dynamic Categories', to: '/admin/categories', icon: FolderTree },
     { label: 'Orders & Courier', to: '/admin/orders', icon: ShoppingBag },
-    { label: 'Security & Pilots', to: '/admin/users', icon: ShieldAlert },
+    { label: 'Security & Users', to: '/admin/users', icon: ShieldAlert },
     { label: 'System Settings', to: '/admin/settings', icon: Sliders },
   ];
 
@@ -69,9 +69,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </button>
       </div>
 
-      {/* Unified Admin Sidebar */}
+      {/* Unified Admin Sidebar - permanently fixed */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-carbon-slate border-r border-fastener-border flex flex-col justify-between z-40 transition-transform duration-200 ${
+        className={`fixed top-0 left-0 h-screen w-64 bg-carbon-slate border-r border-fastener-border flex flex-col justify-between z-40 transition-transform duration-200 overflow-y-auto ${
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -127,7 +127,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           </nav>
         </div>
 
-        {/* Bottom: User Profile Telemetry Card */}
+        {/* Bottom: User Profile Card */}
         <div className="p-3 border-t border-fastener-border bg-carbon-card/50 relative">
           <div
             onClick={() => setProfileOpen(!profileOpen)}
@@ -141,7 +141,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               />
               <div className="text-left overflow-hidden">
                 <p className="text-xs font-bold text-machined-titanium truncate leading-tight">
-                  {user?.name || 'ROVIN Commander'}
+                  {user?.name || 'ROVIN Admin'}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -163,12 +163,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               </div>
 
               <Link
-                to="/admin/settings"
+                to="/account"
                 onClick={() => setProfileOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2 rounded text-xs text-machined-muted hover:text-machined-titanium hover:bg-carbon-slate transition-colors"
               >
                 <UserIcon className="w-3.5 h-3.5 text-nitro-amber" />
-                Go to Profile & Settings
+                Go to Profile & Account
               </Link>
 
               <button
@@ -176,7 +176,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded text-xs text-red-400 hover:bg-red-500/10 transition-colors text-left"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                Conclude Session (Logout)
+                Sign Out
               </button>
             </div>
           )}
@@ -184,7 +184,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       </aside>
 
       {/* Main Panel Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 md:ml-64">
         {/* Top Banner on All Pages */}
         <header className="border-b border-fastener-border bg-carbon-slate/80 backdrop-blur-md px-6 py-5 sticky top-0 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

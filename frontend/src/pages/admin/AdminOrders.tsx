@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Send,
   Edit,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -219,11 +220,36 @@ export const AdminOrders: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(`Status Calibrated: ${newStatus}`);
+        toast.success(`Status updated: ${newStatus}`);
         fetchOrders();
       }
     } catch {
       toast.error('Failed to update status');
+    }
+  };
+
+  // Permanently Delete Order
+  const handleDeleteOrder = async (orderId: string, orderNumber: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete order #${orderNumber}? Stock will be restored if order is not cancelled.`)) {
+      return;
+    }
+    const token = localStorage.getItem('rovin_token');
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`Order #${orderNumber} deleted successfully`);
+        fetchOrders();
+      } else {
+        toast.error(data.message || 'Failed to delete order');
+      }
+    } catch (err: any) {
+      toast.error('Network error deleting order');
     }
   };
 
@@ -233,7 +259,7 @@ export const AdminOrders: React.FC = () => {
       comment="1-Click courier dispatch to Steadfast & Pathao, emergency manual API override, and 4x6 thermal shipping labels."
       action={
         <button onClick={fetchOrders} className="outline-btn text-xs py-2 px-3 flex items-center gap-1.5">
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Manifest
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Orders
         </button>
       }
     >
@@ -385,6 +411,15 @@ export const AdminOrders: React.FC = () => {
                           title="Print 4x6 Thermal Shipping Label"
                         >
                           <Printer className="w-4 h-4" />
+                        </button>
+
+                        {/* Delete Order Button */}
+                        <button
+                          onClick={() => handleDeleteOrder(o.id, o.orderNumber)}
+                          className="p-1.5 rounded bg-carbon-slate border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10 hover:border-red-500 transition-colors"
+                          title="Delete Order Permanently"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>

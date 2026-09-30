@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { useAuth } from '../../context/AuthContext';
-import { FileUploadZone } from '../../components/admin/FileUploadZone';
 import {
-  Sliders,
   Truck,
   CreditCard,
   Save,
-  CheckCircle,
-  User as UserIcon,
-  Shield,
-  Phone,
-  Mail,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface SystemSettingsState {
+  dhakaRate: number;
+  outsideRate: number;
+  freeShippingThreshold: number | '';
+  bkashMerchant: string;
+  nagadMerchant: string;
+  maintenanceMode: boolean;
+}
+
 export const AdminSettings: React.FC = () => {
-  usePageTitle('System Settings & Delivery Rates', 'Configure shipping charges, payment credentials, and operator profile');
-  const { user, refreshProfile } = useAuth();
+  usePageTitle('System Settings & Delivery Rates', 'Configure shipping charges, payment credentials, and store controls');
 
   const [loading, setLoading] = useState(false);
+  const [initialSettings, setInitialSettings] = useState<SystemSettingsState | null>(null);
+
   const [dhakaRate, setDhakaRate] = useState(70);
   const [outsideRate, setOutsideRate] = useState(130);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<number | ''>(5000);
@@ -33,12 +37,21 @@ export const AdminSettings: React.FC = () => {
       const res = await fetch('/api/admin/settings');
       const data = await res.json();
       if (data.success && data.settings) {
-        setDhakaRate(data.settings.deliveryChargeInsideDhaka);
-        setOutsideRate(data.settings.deliveryChargeOutsideDhaka);
-        setFreeShippingThreshold(data.settings.freeShippingThreshold || '');
-        setBkashMerchant(data.settings.bkashMerchantNumber || '');
-        setNagadMerchant(data.settings.nagadMerchantNumber || '');
-        setMaintenanceMode(data.settings.maintenanceMode);
+        const loaded: SystemSettingsState = {
+          dhakaRate: Number(data.settings.deliveryChargeInsideDhaka) || 70,
+          outsideRate: Number(data.settings.deliveryChargeOutsideDhaka) || 130,
+          freeShippingThreshold: data.settings.freeShippingThreshold ? Number(data.settings.freeShippingThreshold) : '',
+          bkashMerchant: data.settings.bkashMerchantNumber || '',
+          nagadMerchant: data.settings.nagadMerchantNumber || '',
+          maintenanceMode: Boolean(data.settings.maintenanceMode),
+        };
+        setDhakaRate(loaded.dhakaRate);
+        setOutsideRate(loaded.outsideRate);
+        setFreeShippingThreshold(loaded.freeShippingThreshold);
+        setBkashMerchant(loaded.bkashMerchant);
+        setNagadMerchant(loaded.nagadMerchant);
+        setMaintenanceMode(loaded.maintenanceMode);
+        setInitialSettings(loaded);
       }
     } catch {
       toast.error('Failed to load system settings');
@@ -49,8 +62,19 @@ export const AdminSettings: React.FC = () => {
     fetchSettings();
   }, []);
 
+  const isDirty = initialSettings !== null && (
+    dhakaRate !== initialSettings.dhakaRate ||
+    outsideRate !== initialSettings.outsideRate ||
+    freeShippingThreshold !== initialSettings.freeShippingThreshold ||
+    bkashMerchant !== initialSettings.bkashMerchant ||
+    nagadMerchant !== initialSettings.nagadMerchant ||
+    maintenanceMode !== initialSettings.maintenanceMode
+  );
+
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isDirty) return;
+
     setLoading(true);
     const token = localStorage.getItem('rovin_token');
 
@@ -74,7 +98,16 @@ export const AdminSettings: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to save');
 
-      toast.success('System Settings Calibrated', { description: data.message });
+      setInitialSettings({
+        dhakaRate: Number(dhakaRate),
+        outsideRate: Number(outsideRate),
+        freeShippingThreshold,
+        bkashMerchant,
+        nagadMerchant,
+        maintenanceMode,
+      });
+
+      toast.success('Settings Saved Successfully', { description: data.message });
     } catch (err: any) {
       toast.error('Update Failed', { description: err.message });
     } finally {
@@ -85,168 +118,173 @@ export const AdminSettings: React.FC = () => {
   return (
     <AdminLayout
       title="SYSTEM SETTINGS & DELIVERY CHARGES"
-      comment="Configure dynamic delivery rates for Bangladesh districts, payment gateway numbers, and operator preferences."
+      comment="Configure delivery fees across Bangladesh districts, MFS merchant numbers, and store controls."
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Settings Form (2 Cols) */}
-        <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={handleSaveSettings} className="space-y-6">
-            {/* Delivery Charges Box */}
-            <div className="chassis-card p-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-fastener-border mb-4">
-                <Truck className="w-4 h-4 text-nitro-amber" />
-                <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase">
-                  Bangladesh Delivery Charges (Editable)
-                </h2>
-              </div>
+      <div className="max-w-4xl space-y-6">
+        <form onSubmit={handleSaveSettings} className="space-y-6">
+          {/* Delivery Charges Box */}
+          <div className="chassis-card p-6">
+            <div className="flex items-center gap-2 pb-3 border-b border-fastener-border mb-4">
+              <Truck className="w-4 h-4 text-nitro-amber" />
+              <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase">
+                Bangladesh Delivery Charges
+              </h2>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    Inside Dhaka Delivery (৳)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={dhakaRate}
-                    onChange={(e) => setDhakaRate(Number(e.target.value))}
-                    className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-sm font-bold text-nitro-amber focus:outline-none focus:border-nitro-amber"
-                  />
-                  <span className="text-[11px] font-mono text-machined-dim mt-1 block">
-                    Applies automatically to Dhaka district addresses
-                  </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    Outside Dhaka Delivery (৳)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={outsideRate}
-                    onChange={(e) => setOutsideRate(Number(e.target.value))}
-                    className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-sm font-bold text-nitro-amber focus:outline-none focus:border-nitro-amber"
-                  />
-                  <span className="text-[11px] font-mono text-machined-dim mt-1 block">
-                    Applies to all other 63 Bangladesh districts
-                  </span>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
+                  Inside Dhaka Delivery (৳)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={0}
+                  value={dhakaRate}
+                  onChange={(e) => setDhakaRate(Number(e.target.value))}
+                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-sm font-bold text-nitro-amber focus:outline-none focus:border-nitro-amber"
+                />
+                <span className="text-[11px] font-mono text-machined-dim mt-1 block">
+                  Applies automatically to Dhaka city & district
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                  Free Delivery Threshold (৳ Optional)
+                  Outside Dhaka Delivery (৳)
                 </label>
                 <input
                   type="number"
-                  value={freeShippingThreshold}
-                  onChange={(e) => setFreeShippingThreshold(e.target.value ? Number(e.target.value) : '')}
-                  placeholder="e.g. 5000 for free shipping on ৳5,000+ orders"
-                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
+                  required
+                  min={0}
+                  value={outsideRate}
+                  onChange={(e) => setOutsideRate(Number(e.target.value))}
+                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-sm font-bold text-nitro-amber focus:outline-none focus:border-nitro-amber"
                 />
+                <span className="text-[11px] font-mono text-machined-dim mt-1 block">
+                  Applies to all other 63 Bangladesh districts
+                </span>
               </div>
             </div>
 
-            {/* Merchant Payment Numbers */}
-            <div className="chassis-card p-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-fastener-border mb-4">
-                <CreditCard className="w-4 h-4 text-nitro-amber" />
-                <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase">
-                  MFS Payment Routing
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    bKash Merchant / Personal No.
-                  </label>
-                  <input
-                    type="text"
-                    value={bkashMerchant}
-                    onChange={(e) => setBkashMerchant(e.target.value)}
-                    placeholder="01XXXXXXXXX"
-                    className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs font-mono text-machined-titanium focus:outline-none focus:border-nitro-amber"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    Nagad Merchant / Personal No.
-                  </label>
-                  <input
-                    type="text"
-                    value={nagadMerchant}
-                    onChange={(e) => setNagadMerchant(e.target.value)}
-                    placeholder="01XXXXXXXXX"
-                    className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs font-mono text-machined-titanium focus:outline-none focus:border-nitro-amber"
-                  />
-                </div>
-              </div>
+            <div>
+              <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
+                Free Delivery Minimum Order (৳ Optional)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={freeShippingThreshold}
+                onChange={(e) => setFreeShippingThreshold(e.target.value ? Number(e.target.value) : '')}
+                placeholder="e.g. 5000 for free delivery on orders ৳5,000+"
+                className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
+              />
+              <span className="text-[11px] font-mono text-machined-dim mt-1 block">
+                Leave empty or 0 to charge delivery on all orders
+              </span>
             </div>
+          </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={loading}
-                className="nitro-btn flex items-center gap-2 py-3 px-6 text-xs"
-              >
-                <Save className="w-4 h-4" />
-                {loading ? 'CALIBRATING...' : 'SAVE SETTINGS & RATES'}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Operator Profile Telemetry Card (1 Col) */}
-        <div className="space-y-6">
+          {/* Merchant Payment Numbers */}
           <div className="chassis-card p-6">
             <div className="flex items-center gap-2 pb-3 border-b border-fastener-border mb-4">
-              <UserIcon className="w-4 h-4 text-nitro-amber" />
+              <CreditCard className="w-4 h-4 text-nitro-amber" />
               <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase">
-                Active Operator Profile
+                bKash & Nagad Payment Numbers
               </h2>
             </div>
 
-            <div className="flex flex-col items-center text-center pb-4 border-b border-fastener-border">
-              <img
-                src={user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
-                alt={user?.name || 'Operator'}
-                className="w-20 h-20 rounded-full border-2 border-nitro-amber bg-carbon-slate p-0.5 object-cover shadow-nitro-sm mb-3"
-              />
-              <h3 className="font-bold text-base text-machined-titanium">{user?.name || 'ROVIN Commander'}</h3>
-              <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber mt-1 text-[10px]">
-                CLEARANCE: {user?.role || 'ADMIN'}
-              </span>
-            </div>
-
-            <div className="space-y-3 pt-4 font-mono text-xs">
-              <div className="flex items-center justify-between text-machined-muted">
-                <span className="flex items-center gap-1.5 text-machined-dim">
-                  <Mail className="w-3.5 h-3.5" /> Email:
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+              <div>
+                <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
+                  bKash Merchant / Personal Number
+                </label>
+                <input
+                  type="text"
+                  value={bkashMerchant}
+                  onChange={(e) => setBkashMerchant(e.target.value)}
+                  placeholder="01XXXXXXXXX"
+                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs font-mono text-machined-titanium focus:outline-none focus:border-nitro-amber"
+                />
+                <span className="text-[11px] font-mono text-machined-dim mt-1 block">
+                  Shown to customers during bKash manual checkout
                 </span>
-                <span className="text-machined-silver">{user?.email || 'admin@rovin.com.bd'}</span>
               </div>
-              <div className="flex items-center justify-between text-machined-muted">
-                <span className="flex items-center gap-1.5 text-machined-dim">
-                  <Phone className="w-3.5 h-3.5" /> Phone:
-                </span>
-                <span className="text-machined-silver">{user?.phone || '01711000000'}</span>
-              </div>
-            </div>
 
-            {/* Avatar Update via FileUploadZone */}
-            <div className="pt-4 mt-4 border-t border-fastener-border">
-              <FileUploadZone
-                label="Replace Operator Avatar (Instant Metadata)"
-                onUploadSuccess={async (url) => {
-                  toast.success('Avatar Asset Received', { description: 'Profile image updated.' });
-                }}
-              />
+              <div>
+                <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
+                  Nagad Merchant / Personal Number
+                </label>
+                <input
+                  type="text"
+                  value={nagadMerchant}
+                  onChange={(e) => setNagadMerchant(e.target.value)}
+                  placeholder="01XXXXXXXXX"
+                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs font-mono text-machined-titanium focus:outline-none focus:border-nitro-amber"
+                />
+                <span className="text-[11px] font-mono text-machined-dim mt-1 block">
+                  Shown to customers during Nagad manual checkout
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* Store Status / Maintenance Controls */}
+          <div className="chassis-card p-6">
+            <div className="flex items-center gap-2 pb-3 border-b border-fastener-border mb-4">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase">
+                Store Operations & Maintenance
+              </h2>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-carbon-slate/50 border border-fastener-border">
+              <div>
+                <span className="text-sm font-semibold text-machined-titanium block">
+                  Maintenance Mode
+                </span>
+                <span className="text-xs text-machined-dim font-mono">
+                  When enabled, storefront visitors will see a maintenance notice and cannot place new orders.
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={maintenanceMode}
+                  onChange={(e) => setMaintenanceMode(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-carbon-slate peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-nitro-amber"></div>
+              </label>
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-xs font-mono text-machined-dim flex items-center gap-1.5">
+              {isDirty ? (
+                <span className="text-nitro-amber font-semibold">● Changes detected — ready to save</span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <Info className="w-3.5 h-3.5" /> No changes detected
+                </span>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isDirty || loading}
+              className={`flex items-center gap-2 py-3 px-6 text-xs font-orbitron font-bold tracking-wider uppercase transition-all rounded ${
+                isDirty && !loading
+                  ? 'bg-nitro-amber text-pitch-obsidian shadow-nitro-md hover:bg-amber-400 cursor-pointer active:scale-95'
+                  : 'bg-carbon-slate text-machined-dim border border-fastener-border cursor-not-allowed opacity-50'
+              }`}
+            >
+              <Save className="w-4 h-4" />
+              {loading ? 'SAVING...' : 'SAVE SETTINGS & RATES'}
+            </button>
+          </div>
+        </form>
       </div>
     </AdminLayout>
   );

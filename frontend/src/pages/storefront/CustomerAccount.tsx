@@ -92,11 +92,11 @@ interface OrderRecord {
 }
 
 export const CustomerAccount: React.FC = () => {
-  usePageTitle('Pilot Command Station', 'Personal Telemetry, Mission History, & Address Matrix');
+  usePageTitle('My Account', 'Profile, Delivery Addresses & Security');
   const navigate = useNavigate();
   const { user, token, isAuthenticated, logout, refreshProfile, updateProfile } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'security' | 'profile'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'security' | 'profile'>('profile');
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
@@ -209,7 +209,7 @@ export const CustomerAccount: React.FC = () => {
 
   // Address form modal
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [addressTitle, setAddressTitle] = useState('Home Base');
+  const [addressTitle, setAddressTitle] = useState('Home');
   const [recipientName, setRecipientName] = useState(user?.name || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
   const [district, setDistrict] = useState('Dhaka');
@@ -217,6 +217,17 @@ export const CustomerAccount: React.FC = () => {
   const [addressLine, setAddressLine] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
+
+  const openAddAddressModal = () => {
+    setAddressTitle('Home');
+    setRecipientName(user?.name || '');
+    setPhoneNumber(user?.phone || '');
+    setDistrict('Dhaka');
+    setThana('');
+    setAddressLine('');
+    setIsDefault(false);
+    setShowAddressModal(true);
+  };
 
   // Password Change
   const [currentPassword, setCurrentPassword] = useState('');
@@ -255,11 +266,11 @@ export const CustomerAccount: React.FC = () => {
     }
   }, [token, activeTab]);
 
-  // Add Address
+    // Add Address
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipientName || !phoneNumber || !district || !thana || !addressLine) {
-      toast.error('Incomplete Coordinates', { description: 'Please complete all address coordinates.' });
+    if (!recipientName.trim() || !phoneNumber.trim() || !district.trim() || !thana.trim() || !addressLine.trim()) {
+      toast.error('Incomplete Address', { description: 'Please complete all required address fields.' });
       return;
     }
 
@@ -272,25 +283,27 @@ export const CustomerAccount: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: addressTitle,
-          recipientName,
-          phoneNumber,
-          district,
-          thana,
-          addressLine,
+          title: addressTitle.trim() || 'Home',
+          recipientName: recipientName.trim(),
+          phoneNumber: phoneNumber.trim(),
+          district: district.trim(),
+          thana: thana.trim(),
+          addressLine: addressLine.trim(),
           isDefault,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to save address');
 
-      toast.success('Coordinates Calibrated', { description: 'New delivery address stored.' });
+      toast.success('Address Saved', { description: 'New delivery address stored.' });
       setShowAddressModal(false);
+      setAddressTitle('Home');
       setThana('');
       setAddressLine('');
+      setIsDefault(false);
       await refreshProfile();
     } catch (err: any) {
-      toast.error('Failed to Save', { description: err.message });
+      toast.error('Failed to Save Address', { description: err.message });
     } finally {
       setSavingAddress(false);
     }
@@ -370,7 +383,7 @@ export const CustomerAccount: React.FC = () => {
       <StorefrontNavbar onOpenAuth={() => {}} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
-        {/* Pilot Telemetry Profile Banner */}
+        {/* Customer Profile Banner */}
         <div className="chassis-card p-6 sm:p-8 mb-8 border-nitro-amber/30 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-nitro-amber/10 to-transparent pointer-events-none rounded-bl-full" />
           
@@ -378,10 +391,10 @@ export const CustomerAccount: React.FC = () => {
             <div className="relative">
               <img
                 src={user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
-                alt={user?.name || 'Pilot'}
+                alt={user?.name || 'Customer'}
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-nitro-amber object-cover shadow-nitro-sm"
               />
-              <div className="absolute -bottom-1 -right-1 bg-carbon-slate border border-nitro-amber/50 rounded-full p-1 text-nitro-amber" title="Verified Pilot">
+              <div className="absolute -bottom-1 -right-1 bg-carbon-slate border border-nitro-amber/50 rounded-full p-1 text-nitro-amber" title="Verified Customer">
                 <Shield className="w-4 h-4" />
               </div>
             </div>
@@ -389,10 +402,10 @@ export const CustomerAccount: React.FC = () => {
             <div className="flex-1 text-center sm:text-left">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
                 <h1 className="font-orbitron font-black text-2xl text-machined-titanium">
-                  {user?.name || 'ROVIN Pilot'}
+                  {user?.name || 'Customer'}
                 </h1>
                 <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber">
-                  {user?.role} PILOT
+                  {user?.role || 'MEMBER'}
                 </span>
               </div>
 
@@ -440,47 +453,47 @@ export const CustomerAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Navigation (Horizontal Scrollable Ribbon on Short/Mobile Devices) */}
-        <div className="flex border-b border-fastener-border mb-8 overflow-x-auto no-scrollbar scroll-smooth gap-1 sm:gap-2">
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
-              activeTab === 'orders'
-                ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
-                : 'border-transparent text-machined-dim hover:text-machined-titanium'
-            }`}
-          >
-            <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Orders ({orders.length})
-          </button>
+        {/* Tab Navigation (Always Horizontal 4 Options on All Screen Sizes) */}
+        <div className="grid grid-cols-4 border-b border-fastener-border mb-8 gap-1 sm:gap-2">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
               activeTab === 'profile'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Profile
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Profile</span>
+          </button>
+          <button
+            onClick={() => navigate('/orders')}
+            className="flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center border-transparent text-machined-dim hover:text-nitro-amber"
+          >
+            <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Orders &rarr;</span>
           </button>
           <button
             onClick={() => setActiveTab('addresses')}
-            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
               activeTab === 'addresses'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Addresses ({user?.addresses?.length || 0})
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Addresses</span>
           </button>
           <button
             onClick={() => setActiveTab('security')}
-            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-4 font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 text-center ${
               activeTab === 'security'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Security
+            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Security</span>
           </button>
         </div>
 
@@ -588,23 +601,23 @@ export const CustomerAccount: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: ADDRESS MATRIX */}
+        {/* TAB 2: SAVED ADDRESSES */}
         {activeTab === 'addresses' && (
           <div>
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="font-orbitron font-bold text-base text-machined-titanium">
-                  Saved Dispatch Addresses
+                  Saved Delivery Addresses
                 </h3>
                 <p className="text-xs text-machined-dim font-mono">
-                  Coordinates preloaded automatically during 1-page checkout
+                  Manage multiple shipping addresses for fast checkout
                 </p>
               </div>
               <button
-                onClick={() => setShowAddressModal(true)}
+                onClick={openAddAddressModal}
                 className="nitro-btn text-xs py-2 px-4 flex items-center gap-1.5"
               >
-                <Plus className="w-3.5 h-3.5" /> Add New Coordinates
+                <Plus className="w-3.5 h-3.5" /> Add New Address
               </button>
             </div>
 
@@ -612,13 +625,13 @@ export const CustomerAccount: React.FC = () => {
               <div className="chassis-card p-10 text-center">
                 <MapPin className="w-10 h-10 text-machined-dim mx-auto mb-2 opacity-50" />
                 <p className="text-xs text-machined-muted mb-4 font-mono">
-                  No default delivery coordinates logged yet.
+                  No saved delivery addresses yet.
                 </p>
                 <button
-                  onClick={() => setShowAddressModal(true)}
+                  onClick={openAddAddressModal}
                   className="outline-btn text-xs py-2 px-4"
                 >
-                  Calibrate First Address
+                  Add First Address
                 </button>
               </div>
             ) : (
@@ -921,24 +934,25 @@ export const CustomerAccount: React.FC = () => {
         )}
       </main>
 
-      {/* Address Calibration Modal */}
+      {/* Add Delivery Address Modal */}
       {showAddressModal && (
         <div className="fixed inset-0 z-50 bg-pitch-obsidian/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="chassis-card max-w-md w-full p-6 border-nitro-amber/50 relative">
             <h3 className="font-orbitron font-bold text-base text-machined-titanium mb-4">
-              Calibrate Delivery Address
+              Add Delivery Address
             </h3>
 
             <form onSubmit={handleSaveAddress} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
-                  Location Tag (e.g. Home, Drift Track, Lab)
+                  Address Label (e.g. Home, Office)
                 </label>
                 <input
                   type="text"
                   required
                   value={addressTitle}
                   onChange={(e) => setAddressTitle(e.target.value)}
+                  placeholder="Home"
                   className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                 />
               </div>
@@ -1023,7 +1037,7 @@ export const CustomerAccount: React.FC = () => {
                   className="rounded border-fastener-border text-nitro-amber focus:ring-nitro-amber bg-carbon-elevated"
                 />
                 <label htmlFor="defaultAddress" className="text-xs font-mono text-machined-silver cursor-pointer">
-                  Set as default delivery coordinates
+                  Set as default delivery address
                 </label>
               </div>
 

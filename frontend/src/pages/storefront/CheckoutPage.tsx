@@ -321,12 +321,12 @@ export const CheckoutPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-nitro-amber" />
                   <h2 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium">
-                    1. Pilot Identification & Account
+                    1. Customer Information & Account
                   </h2>
                 </div>
                 {isAuthenticated && (
                   <span className="telemetry-tag border-emerald-500/50 text-emerald-400 flex items-center gap-1 text-[10px]">
-                    <CheckCircle className="w-3 h-3" /> PILOT VERIFIED
+                    <CheckCircle className="w-3 h-3" /> VERIFIED
                   </span>
                 )}
               </div>
@@ -340,7 +340,7 @@ export const CheckoutPage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-orbitron font-bold text-sm text-machined-titanium">
-                        Pilot Authentication Required to Place Order
+                        Please Sign In to Complete Your Order
                       </h3>
                       <p className="text-xs font-mono text-machined-muted mt-0.5">
                         Please sign in or create an account with a 6-digit code. Your cart items are preserved.
@@ -370,7 +370,7 @@ export const CheckoutPage: React.FC = () => {
                           : 'bg-carbon-slate text-machined-dim hover:text-machined-titanium border border-fastener-border'
                       }`}
                     >
-                      New Pilot (OTP)
+                      New Account (Sign Up)
                     </button>
                   </div>
 
@@ -384,13 +384,13 @@ export const CheckoutPage: React.FC = () => {
                           type="text"
                           value={authIdentifier}
                           onChange={(e) => setAuthIdentifier(e.target.value)}
-                          placeholder="pilot@rovin.com.bd or 017XXXXXXXX"
+                          placeholder="you@email.com or 017XXXXXXXX"
                           className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                         />
                       </div>
                       <div>
                         <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
-                          Security Password
+                          Password
                         </label>
                         <input
                           type="password"
@@ -435,7 +435,7 @@ export const CheckoutPage: React.FC = () => {
                                 type="email"
                                 value={regEmail}
                                 onChange={(e) => setRegEmail(e.target.value)}
-                                placeholder="pilot@rovin.com.bd"
+                                placeholder="you@email.com"
                                 className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                               />
                             </div>

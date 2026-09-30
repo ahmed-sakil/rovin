@@ -74,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           <div className="flex items-center gap-2.5">
             <BrandLogo variant="icon" size="sm" />
             <span className="font-orbitron font-bold text-sm tracking-wider text-machined-titanium uppercase">
-              {mode === 'login' ? 'PILOT AUTHENTICATION' : 'CREW REGISTRATION'}
+              {mode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT'}
             </span>
           </div>
           <button
@@ -95,7 +95,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                 : 'text-machined-dim hover:text-machined-muted'
             }`}
           >
-            ACCESS TERMINAL
+            SIGN IN
           </button>
           <button
             onClick={() => { setMode('register'); setStep(1); }}
@@ -105,7 +105,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                 : 'text-machined-dim hover:text-machined-muted'
             }`}
           >
-            NEW OPERATOR
+            REGISTER
           </button>
         </div>
 
@@ -124,7 +124,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="pilot@rovin.com.bd or 017XXXXXXXX"
+                    placeholder="you@email.com or 017XXXXXXXX"
                     className="w-full bg-carbon-slate border border-fastener-border rounded pl-10 pr-3 py-2 text-sm text-machined-titanium focus:outline-none focus:border-nitro-amber"
                   />
                 </div>
@@ -132,7 +132,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
 
               <div>
                 <label className="block text-xs font-mono text-machined-muted uppercase mb-1.5">
-                  Access Password
+                  Password
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-machined-dim absolute left-3 top-3" />
@@ -221,9 +221,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                         onChange={(e: any) => setGender(e.target.value)}
                         className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
                       >
-                        <option value="MALE">Male (Drift Pilot)</option>
-                        <option value="FEMALE">Female (Tech Pilot)</option>
-                        <option value="OTHER">Other / Tactical</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
                       </select>
                     </div>
 

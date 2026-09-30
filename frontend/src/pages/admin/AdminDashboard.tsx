@@ -12,10 +12,21 @@ import {
   ArrowUpRight,
   RefreshCw,
   Truck,
-  CheckCircle,
   Clock,
+  Users,
+  Globe,
+  Calendar,
+  CheckSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface DailyReport {
+  todayNewUsers: number;
+  todayUniqueVisitors: number;
+  todayOrdersCount: number;
+  todayCompletedOrders: number;
+  todayRevenue: number;
+}
 
 interface DashboardStats {
   totalRevenue: number;
@@ -23,6 +34,7 @@ interface DashboardStats {
   totalProducts: number;
   lowStockCount: number;
   outOfStockCount: number;
+  dailyReport?: DailyReport;
   statusDistribution: Record<string, number>;
   stockDistribution: Array<{ name: string; count: number; color: string }>;
   salesTrend: Array<{ day: string; sales: number; orders: number }>;
@@ -76,6 +88,84 @@ export const AdminDashboard: React.FC = () => {
         </button>
       }
     >
+      {/* 0. Daily Performance Report (Today) */}
+      <div className="chassis-card p-5 mb-6 border-nitro-amber/30 bg-gradient-to-r from-carbon-card via-carbon-slate/60 to-carbon-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-fastener-border gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+            <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-nitro-amber" />
+              Daily Performance Report (Today)
+            </h2>
+          </div>
+          <span className="text-[11px] font-mono text-nitro-amber bg-nitro-amber/10 px-2.5 py-1 rounded border border-nitro-amber/30">
+            {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {/* New Accounts Today */}
+          <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between">
+            <div className="flex items-center justify-between text-machined-dim mb-1">
+              <span className="text-[11px] font-mono uppercase">New Accounts</span>
+              <Users className="w-3.5 h-3.5 text-nitro-amber" />
+            </div>
+            <div className="font-orbitron font-black text-xl text-machined-titanium">
+              {stats?.dailyReport?.todayNewUsers ?? 0}
+            </div>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Registrations today</span>
+          </div>
+
+          {/* Unique IP Visitors Today */}
+          <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between">
+            <div className="flex items-center justify-between text-machined-dim mb-1">
+              <span className="text-[11px] font-mono uppercase">Unique Visitors</span>
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            </div>
+            <div className="font-orbitron font-black text-xl text-cyan-400">
+              {stats?.dailyReport?.todayUniqueVisitors ?? 0}
+            </div>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Distinct client IPs</span>
+          </div>
+
+          {/* Orders Received Today */}
+          <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between">
+            <div className="flex items-center justify-between text-machined-dim mb-1">
+              <span className="text-[11px] font-mono uppercase">Orders Placed</span>
+              <ShoppingBag className="w-3.5 h-3.5 text-nitro-amber" />
+            </div>
+            <div className="font-orbitron font-black text-xl text-nitro-amber">
+              {stats?.dailyReport?.todayOrdersCount ?? 0}
+            </div>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Received today</span>
+          </div>
+
+          {/* Orders Completed Today */}
+          <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between">
+            <div className="flex items-center justify-between text-machined-dim mb-1">
+              <span className="text-[11px] font-mono uppercase">Completed</span>
+              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="font-orbitron font-black text-xl text-emerald-400">
+              {stats?.dailyReport?.todayCompletedOrders ?? 0}
+            </div>
+            <span className="text-[10px] font-mono text-machined-dim mt-1">Delivered today</span>
+          </div>
+
+          {/* Today's Revenue */}
+          <div className="p-3.5 rounded-lg bg-carbon-slate/80 border border-fastener-border flex flex-col justify-between col-span-2 sm:col-span-1">
+            <div className="flex items-center justify-between text-machined-dim mb-1">
+              <span className="text-[11px] font-mono uppercase">Today's Revenue</span>
+              <DollarSign className="w-3.5 h-3.5 text-nitro-amber" />
+            </div>
+            <div className="font-orbitron font-black text-xl text-machined-titanium truncate">
+              ৳{(stats?.dailyReport?.todayRevenue ?? 0).toLocaleString()}
+            </div>
+            <span className="text-[10px] font-mono text-emerald-400 mt-1">Gross sales today</span>
+          </div>
+        </div>
+      </div>
+
       {/* 1. Top KPI Telemetry Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="chassis-card p-5">

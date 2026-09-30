@@ -5,12 +5,15 @@ import { z } from 'zod';
 import { BD_PHONE_REGEX } from '../utils/validators.js';
 
 const AddressSchema = z.object({
-  title: z.string().default('Home'),
+  title: z.string().min(1, 'Title required').default('Home'),
   recipientName: z.string().min(2, 'Recipient name is required'),
-  phoneNumber: z.string().regex(BD_PHONE_REGEX, 'Valid 11-digit BD phone required'),
+  phoneNumber: z
+    .string()
+    .transform((val) => val.replace(/[\s-]/g, '').replace(/^(\+?88)/, ''))
+    .pipe(z.string().regex(BD_PHONE_REGEX, 'Valid 11-digit BD mobile number required (e.g. 01712345678)')),
   district: z.string().min(2, 'District is required'),
   thana: z.string().min(2, 'Thana/Area is required'),
-  addressLine: z.string().min(5, 'Detailed delivery address required'),
+  addressLine: z.string().min(3, 'Detailed delivery address required'),
   isDefault: z.boolean().default(false),
 });
 
@@ -30,7 +33,15 @@ export async function addAddress(req: AuthenticatedRequest, res: Response): Prom
   try {
     const parsed = AddressSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ success: false, errors: parsed.error.flatten().fieldErrors });
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstErrorMessage = Object.entries(fieldErrors)
+        .map(([field, msgs]) => `${field}: ${(msgs || []).join(', ')}`)
+        .join('; ');
+      res.status(400).json({
+        success: false,
+        message: firstErrorMessage || 'Invalid address data.',
+        errors: fieldErrors,
+      });
       return;
     }
 

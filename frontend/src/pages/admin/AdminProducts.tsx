@@ -32,7 +32,7 @@ interface Product {
   discountPriceBDT?: number;
   stockQuantity: number;
   lowStockThreshold: number;
-  availableColors?: Array<{ name: string; hex: string }>;
+  availableColors?: Array<{ name: string; hex: string; image?: string }>;
   availableSizes?: string[];
   weightGrams?: number;
   packageIncludes?: string[];
@@ -82,7 +82,8 @@ export const AdminProducts: React.FC = () => {
   const [lowStockThreshold, setLowStockThreshold] = useState<number>(5);
   const [colorInput, setColorInput] = useState('');
   const [colorHex, setColorHex] = useState('#FFC837');
-  const [colors, setColors] = useState<Array<{ name: string; hex: string }>>([]);
+  const [colorImage, setColorImage] = useState<string>('');
+  const [colors, setColors] = useState<Array<{ name: string; hex: string; image?: string }>>([]);
   const [packageItem, setPackageItem] = useState('');
   const [packageIncludes, setPackageIncludes] = useState<string[]>([]);
   const [scale, setScale] = useState('1:16');
@@ -179,8 +180,9 @@ export const AdminProducts: React.FC = () => {
 
   const handleAddColor = () => {
     if (colorInput.trim()) {
-      setColors([...colors, { name: colorInput.trim(), hex: colorHex }]);
+      setColors([...colors, { name: colorInput.trim(), hex: colorHex, image: colorImage.trim() || undefined }]);
       setColorInput('');
+      setColorImage('');
     }
   };
 
@@ -626,46 +628,85 @@ export const AdminProducts: React.FC = () => {
               {/* Available Colors Configurator */}
               <div>
                 <label className="block text-xs font-mono text-machined-muted uppercase mb-1.5">
-                  Available Color Options
+                  Available Color Options & Color Photos
                 </label>
-                <div className="flex gap-2 mb-2">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-2">
                   <input
                     type="text"
                     value={colorInput}
                     onChange={(e) => setColorInput(e.target.value)}
-                    placeholder="Color Name (e.g. Nitro Amber)"
-                    className="flex-1 bg-carbon-slate border border-fastener-border rounded px-3 py-1.5 text-xs text-machined-titanium"
+                    placeholder="Color Name (e.g. Flame Red)"
+                    className="flex-1 min-w-[140px] bg-carbon-slate border border-fastener-border rounded px-3 py-1.5 text-xs text-machined-titanium"
                   />
                   <input
                     type="color"
                     value={colorHex}
                     onChange={(e) => setColorHex(e.target.value)}
-                    className="w-9 h-8 rounded bg-transparent border border-fastener-border cursor-pointer"
+                    className="w-9 h-8 rounded bg-transparent border border-fastener-border cursor-pointer shrink-0"
+                    title="Choose Hex Color"
                   />
+                  <select
+                    value={colorImage}
+                    onChange={(e) => setColorImage(e.target.value)}
+                    className="bg-carbon-slate border border-fastener-border rounded px-2 py-1.5 text-xs text-machined-silver max-w-[150px] shrink-0"
+                  >
+                    <option value="">No Color Photo</option>
+                    {images.map((imgUrl, imgIdx) => (
+                      <option key={imgIdx} value={imgUrl}>
+                        Photo #{imgIdx + 1}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={handleAddColor}
-                    className="outline-btn text-[11px] py-1.5 px-3"
+                    className="outline-btn text-[11px] py-1.5 px-3 shrink-0"
                   >
                     + Add Color
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 pt-1">
                   {colors.map((c, i) => (
-                    <span
+                    <div
                       key={i}
-                      className="inline-flex items-center gap-1.5 bg-carbon-slate border border-fastener-gunmetal rounded px-2.5 py-1 text-xs font-mono"
+                      className="inline-flex items-center gap-2 bg-carbon-slate border border-fastener-gunmetal rounded p-1.5 text-xs font-mono"
                     >
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.hex }} />
-                      {c.name}
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: c.hex }} />
+                      <span className="text-machined-titanium font-semibold">{c.name}</span>
+                      
+                      <select
+                        value={c.image || ''}
+                        onChange={(e) => {
+                          const updated = [...colors];
+                          updated[i] = { ...c, image: e.target.value || undefined };
+                          setColors(updated);
+                        }}
+                        className="bg-carbon-card border border-fastener-border text-[10px] rounded px-1.5 py-0.5 text-machined-silver max-w-[110px]"
+                      >
+                        <option value="">Default Photo</option>
+                        {images.map((imgUrl, imgIdx) => (
+                          <option key={imgIdx} value={imgUrl}>
+                            Photo #{imgIdx + 1}
+                          </option>
+                        ))}
+                      </select>
+
+                      {c.image && (
+                        <img
+                          src={c.image}
+                          alt={c.name}
+                          className="w-5 h-5 rounded object-cover border border-nitro-amber/50 shrink-0"
+                        />
+                      )}
+
                       <button
                         type="button"
                         onClick={() => setColors(colors.filter((_, idx) => idx !== i))}
-                        className="text-machined-dim hover:text-red-400 ml-1"
+                        className="text-machined-dim hover:text-red-400 px-1 font-bold"
                       >
                         ×
                       </button>
-                    </span>
+                    </div>
                   ))}
                 </div>
               </div>

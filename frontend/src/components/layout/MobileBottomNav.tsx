@@ -90,7 +90,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAuth }) 
             alt={user.name}
             className="w-5 h-5 rounded-full border border-nitro-amber/70 object-cover"
           />
-          <span>PILOT</span>
+          <span>ACCOUNT</span>
         </Link>
       ) : (
         <Link

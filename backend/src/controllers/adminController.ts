@@ -79,6 +79,48 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
       orders: 3 + ((idx * 4) % 9),
     }));
 
+    // Calculate today's start timestamp (midnight)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [
+      todayNewUsers,
+      todayOrders,
+      todayCompletedOrders,
+      todayActivityIps,
+      todayRevenueSum,
+    ] = await Promise.all([
+      prisma.user.count({
+        where: { createdAt: { gte: todayStart } },
+      }),
+      prisma.order.count({
+        where: { createdAt: { gte: todayStart } },
+      }),
+      prisma.order.count({
+        where: {
+          updatedAt: { gte: todayStart },
+          orderStatus: 'DELIVERED',
+        },
+      }),
+      prisma.userActivityLog.findMany({
+        where: { createdAt: { gte: todayStart }, ipAddress: { not: null } },
+        select: { ipAddress: true },
+        distinct: ['ipAddress'],
+      }),
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { createdAt: { gte: todayStart }, orderStatus: { not: 'CANCELLED' } },
+      }),
+    ]);
+
+    const dailyReport = {
+      todayNewUsers,
+      todayUniqueVisitors: Math.max(todayActivityIps.length, 1),
+      todayOrdersCount: todayOrders,
+      todayCompletedOrders,
+      todayRevenue: todayRevenueSum._sum.totalAmount || 0,
+    };
+
     // Stock Distribution Data
     const healthyStock = Math.max(0, totalProducts - lowStockProducts - outOfStockProducts);
     const stockDistribution = [
@@ -98,6 +140,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
         statusDistribution: statusMap,
         stockDistribution,
         salesTrend,
+        dailyReport,
         categories: categories.map((c) => ({ name: c.name, count: c._count.products })),
         recentOrders,
         recentLogs,

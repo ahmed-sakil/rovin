@@ -72,9 +72,15 @@ export const ProductDetail: React.FC = () => {
         .then((d) => {
           if (d.success && d.product) {
             setProduct(d.product);
-            setSelectedImage(d.product.images[0] || '/assets/avatars/avatar-m1.svg');
             if (d.product.availableColors?.[0]) {
               setSelectedColor(d.product.availableColors[0].name);
+              if (d.product.availableColors[0].image) {
+                setSelectedImage(d.product.availableColors[0].image);
+              } else {
+                setSelectedImage(d.product.images[0] || '/assets/avatars/avatar-m1.svg');
+              }
+            } else {
+              setSelectedImage(d.product.images[0] || '/assets/avatars/avatar-m1.svg');
             }
             fetchReviews(d.product.id);
           }
@@ -246,13 +252,18 @@ export const ProductDetail: React.FC = () => {
             {product.availableColors && product.availableColors.length > 0 && (
               <div className="p-4 rounded-lg bg-carbon-card border border-fastener-border space-y-2">
                 <span className="text-xs font-mono text-machined-dim uppercase tracking-wider block">
-                  Select Color Finishes
+                  Select Color
                 </span>
                 <div className="flex flex-wrap gap-2.5">
                   {product.availableColors.map((col: any, idx: number) => (
                     <button
                       key={idx}
-                      onClick={() => setSelectedColor(col.name)}
+                      onClick={() => {
+                        setSelectedColor(col.name);
+                        if (col.image) {
+                          setSelectedImage(col.image);
+                        }
+                      }}
                       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-mono border transition-all ${
                         selectedColor === col.name
                           ? 'border-nitro-amber bg-carbon-slate text-nitro-amber font-bold shadow-nitro-sm'
@@ -327,7 +338,7 @@ export const ProductDetail: React.FC = () => {
               <div className="chassis-card p-4 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-orbitron font-bold text-machined-titanium uppercase">
                   <Layers className="w-4 h-4 text-nitro-amber" />
-                  Telemetry Specifications
+                  Technical Specifications
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
                   {Object.entries(product.specs).map(([key, val]: any, idx) => (
@@ -342,18 +353,18 @@ export const ProductDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* SECTION: FIELD REVIEWS & PILOT RATINGS */}
+        {/* SECTION: CUSTOMER REVIEWS & RATINGS */}
         <div className="mt-12 pt-8 border-t border-fastener-border">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber" />
                 <h2 className="font-orbitron font-black text-xl text-machined-titanium uppercase tracking-wider">
-                  Pilot Field Reports & Reviews
+                  Customer Reviews & Ratings
                 </h2>
               </div>
               <p className="text-xs font-mono text-machined-dim">
-                Real-world durability, handling performance, and benchmark calibrations from verified owners.
+                Real feedback, quality ratings, and impressions from verified buyers.
               </p>
             </div>
 
@@ -367,7 +378,7 @@ export const ProductDetail: React.FC = () => {
               }}
               className="nitro-btn text-xs py-2.5 px-5 flex items-center gap-2"
             >
-              <Star className="w-4 h-4" /> Submit Pilot Review
+              <Star className="w-4 h-4" /> Write a Review
             </button>
           </div>
 
@@ -390,20 +401,20 @@ export const ProductDetail: React.FC = () => {
                 ))}
               </div>
               <span className="text-xs font-mono text-machined-muted">
-                Based on {reviewStats.total} {reviewStats.total === 1 ? 'verified transmission' : 'verified transmissions'}
+                Based on {reviewStats.total} {reviewStats.total === 1 ? 'customer review' : 'customer reviews'}
               </span>
             </div>
 
             <div className="chassis-card p-6 md:col-span-2 flex flex-col justify-center space-y-2">
               <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="w-20 text-machined-silver">Mechanical</span>
+                <span className="w-20 text-machined-silver">Performance</span>
                 <div className="flex-1 h-2 bg-carbon-slate rounded-full overflow-hidden">
                   <div className="h-full bg-nitro-amber rounded-full" style={{ width: '96%' }} />
                 </div>
                 <span className="text-nitro-amber font-bold">4.9</span>
               </div>
               <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="w-20 text-machined-silver">Handling</span>
+                <span className="w-20 text-machined-silver">Durability</span>
                 <div className="flex-1 h-2 bg-carbon-slate rounded-full overflow-hidden">
                   <div className="h-full bg-nitro-amber rounded-full" style={{ width: '92%' }} />
                 </div>
@@ -422,13 +433,13 @@ export const ProductDetail: React.FC = () => {
           {/* Reviews Stream */}
           {loadingReviews ? (
             <div className="chassis-card p-8 text-center text-xs font-mono text-machined-dim">
-              Loading field reports...
+              Loading customer reviews...
             </div>
           ) : reviews.length === 0 ? (
             <div className="chassis-card p-8 text-center">
               <MessageSquare className="w-8 h-8 text-machined-dim mx-auto mb-2 opacity-50" />
               <p className="text-xs font-mono text-machined-muted mb-3">
-                No telemetry reviews logged for this model yet.
+                No customer reviews for this product yet.
               </p>
               <button
                 onClick={() => {
@@ -437,7 +448,7 @@ export const ProductDetail: React.FC = () => {
                 }}
                 className="outline-btn text-xs py-2 px-4"
               >
-                Be the first pilot to report
+                Be the first to review this product
               </button>
             </div>
           ) : (
@@ -560,14 +571,14 @@ export const ProductDetail: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
-                    Operational Feedback
+                    Your Review / Feedback
                   </label>
                   <textarea
                     rows={4}
                     required
                     value={newReviewComment}
                     onChange={(e) => setNewReviewComment(e.target.value)}
-                    placeholder="Describe build quality, throttle response, shock damping, or battery endurance..."
+                    placeholder="Share your experience regarding performance, build quality, and durability..."
                     className="w-full bg-carbon-slate border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                   />
                 </div>
@@ -585,7 +596,7 @@ export const ProductDetail: React.FC = () => {
                     disabled={submittingReview}
                     className="flex-1 nitro-btn text-xs py-2.5"
                   >
-                    {submittingReview ? 'Transmitting...' : 'Post Report'}
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
                   </button>
                 </div>
               </form>

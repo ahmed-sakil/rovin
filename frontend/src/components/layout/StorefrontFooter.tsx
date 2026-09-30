@@ -17,14 +17,14 @@ export const StorefrontFooter: React.FC = () => {
             </p>
             <div className="flex items-center gap-2 pt-1 text-[11px] font-mono text-emerald-500">
               <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>100% Pre-Dispatch Telemetry Verified</span>
+              <span>100% Quality Checked Before Dispatch</span>
             </div>
           </div>
 
           {/* Col 2: Navigation Links */}
           <div>
             <h4 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium mb-3">
-              Catalog & Gear
+              Catalog & Products
             </h4>
             <ul className="space-y-2 font-mono text-[11px]">
               <li>
@@ -53,7 +53,7 @@ export const StorefrontFooter: React.FC = () => {
           {/* Col 3: Support & Information */}
           <div>
             <h4 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium mb-3">
-              Support & Intel
+              Customer Support
             </h4>
             <ul className="space-y-2 font-mono text-[11px]">
               <li>
@@ -79,10 +79,10 @@ export const StorefrontFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 4: Logistics & Dispatch Protocol */}
+          {/* Col 4: Logistics & Delivery */}
           <div>
             <h4 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium mb-3">
-              Logistics Telemetry
+              Delivery & Logistics
             </h4>
             <div className="space-y-2 font-mono text-[11px] text-machined-muted">
               <div className="flex items-start gap-2">
@@ -104,11 +104,11 @@ export const StorefrontFooter: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Telemetry Bar */}
+      {/* Bottom Bar */}
       <div className="border-t border-fastener-border py-4 px-4 sm:px-6 bg-pitch-deep">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <span className="font-mono text-[11px]">
-            &copy; {new Date().getFullYear()} ROVIN BANGLADESH &bull; PRECISION TELEMETRY PROTOCOL
+            &copy; {new Date().getFullYear()} ROVIN BANGLADESH &bull; ALL RIGHTS RESERVED
           </span>
           <div className="flex items-center gap-4 font-mono text-[10px] text-machined-dim">
             <span>2.4GHz RADIO &bull; BRUSHLESS HIGH-TORQUE</span>

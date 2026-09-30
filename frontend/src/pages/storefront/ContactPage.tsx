@@ -184,21 +184,21 @@ export const ContactPage: React.FC = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="pilot@domain.com"
+                    placeholder="name@example.com"
                     className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    Transmission Message (Min 10 characters)
+                    Your Message (Min 10 characters)
                   </label>
                   <textarea
                     rows={4}
                     required
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Describe your inquiry, order number, or custom specs..."
+                    placeholder="Describe your inquiry, order number, or question..."
                     className="w-full bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
                   />
                 </div>
@@ -209,7 +209,7 @@ export const ContactPage: React.FC = () => {
                   className="w-full nitro-btn flex items-center justify-center gap-2 py-3 text-xs"
                 >
                   <Send className="w-4 h-4" />
-                  {loading ? 'TRANSMITTING...' : 'DISPATCH TRANSMISSION'}
+                  {loading ? 'SENDING...' : 'SEND MESSAGE'}
                 </button>
               </form>
             )}
