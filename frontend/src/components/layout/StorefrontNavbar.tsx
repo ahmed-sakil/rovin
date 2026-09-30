@@ -53,7 +53,15 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
               isActive ? 'text-nitro-amber font-bold' : 'text-machined-muted hover:text-machined-titanium transition-colors'
             }
           >
-            Catalog Hangar
+            Home
+          </NavLink>
+          <NavLink
+            to="/products"
+            className={({ isActive }) =>
+              isActive ? 'text-nitro-amber font-bold' : 'text-machined-muted hover:text-machined-titanium transition-colors'
+            }
+          >
+            All Products
           </NavLink>
           <NavLink
             to="/about"
@@ -215,7 +223,16 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                   onClick={() => setBurgerOpen(false)}
                   className="flex items-center justify-between px-3 py-2.5 rounded text-machined-silver hover:bg-carbon-card hover:text-nitro-amber"
                 >
-                  <span>Catalog Hangar</span>
+                  <span>Home</span>
+                  <ChevronRight className="w-4 h-4 text-machined-dim" />
+                </NavLink>
+
+                <NavLink
+                  to="/products"
+                  onClick={() => setBurgerOpen(false)}
+                  className="flex items-center justify-between px-3 py-2.5 rounded text-machined-silver hover:bg-carbon-card hover:text-nitro-amber"
+                >
+                  <span>All Products</span>
                   <ChevronRight className="w-4 h-4 text-machined-dim" />
                 </NavLink>
 
