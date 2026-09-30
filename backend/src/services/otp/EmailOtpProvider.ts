@@ -1,36 +1,49 @@
+import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { IOtpProvider, OtpPayload } from './IOtpProvider.js';
 
 export class EmailOtpProvider implements IOtpProvider {
+  private resendClient: Resend | null = null;
   private transporter: nodemailer.Transporter | null = null;
 
   constructor() {
-    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = Number(process.env.SMTP_PORT) || 587;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    // 1. Prioritize Resend API Key (HTTP REST - never blocked by cloud firewalls or port filters)
+    const resendApiKey = process.env.RESEND_API_KEY || (
+      process.env.SMTP_USER === 'resend' || process.env.SMTP_PASS?.startsWith('re_')
+        ? process.env.SMTP_PASS
+        : undefined
+    );
 
-    if (user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
-        connectionTimeout: 8000,
-        greetingTimeout: 8000,
-        socketTimeout: 10000,
-      });
+    if (resendApiKey) {
+      this.resendClient = new Resend(resendApiKey);
+      console.log('[ROVIN Email OTP] Resend HTTP API engine initialized.');
+    } else {
+      // 2. Fallback to standard SMTP (e.g. Gmail App Password, Custom SMTP)
+      const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+      const port = Number(process.env.SMTP_PORT) || 587;
+      const user = process.env.SMTP_USER;
+      const pass = process.env.SMTP_PASS;
+
+      if (user && pass) {
+        this.transporter = nodemailer.createTransport({
+          host,
+          port,
+          secure: port === 465,
+          auth: { user, pass },
+          connectionTimeout: 8000,
+          greetingTimeout: 8000,
+          socketTimeout: 10000,
+        });
+        console.log(`[ROVIN Email OTP] SMTP Transporter configured (${host}:${port}).`);
+      }
     }
   }
 
   async sendOtp(payload: OtpPayload): Promise<boolean> {
-    if (!this.transporter) {
-      console.warn('[ROVIN Email OTP] SMTP credentials not fully configured. Falling back to console output:');
-      console.log(`[ROVIN Fallback OTP] Recipient: ${payload.recipient} | Code: ${payload.code}`);
-      return true;
-    }
+    const rawFrom = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    // Format valid RFC 2822 sender
+    const fromAddress = rawFrom.includes('<') ? rawFrom : `ROVIN Tactical <${rawFrom}>`;
 
-    const fromAddress = process.env.EMAIL_FROM || '"ROVIN Tactical" <no-reply@rovin.com.bd>';
     const actionLabel =
       payload.purpose === 'REGISTER'
         ? 'Account Verification'
@@ -64,18 +77,52 @@ export class EmailOtpProvider implements IOtpProvider {
       </div>
     `;
 
-    try {
-      await this.transporter.sendMail({
-        from: fromAddress,
-        to: payload.recipient,
-        subject: `[ROVIN] ${payload.code} is your ${actionLabel} code`,
-        html: htmlContent,
-      });
-      return true;
-    } catch (err) {
-      console.error('[ROVIN Email OTP Error]:', err);
-      console.warn(`[ROVIN FALLBACK OTP ALERT] SMTP failed. OTP code for ${payload.recipient} is: >>> ${payload.code} <<<`);
-      return false;
+    // 1. Try Resend HTTP API
+    if (this.resendClient) {
+      try {
+        const { data, error } = await this.resendClient.emails.send({
+          from: fromAddress,
+          to: payload.recipient,
+          subject: `[ROVIN] ${payload.code} is your ${actionLabel} code`,
+          html: htmlContent,
+        });
+
+        if (error) {
+          console.error('[ROVIN Resend API Error]:', error);
+          console.warn(`[ROVIN FALLBACK OTP ALERT] Resend API reported error: ${error.message}. OTP code for ${payload.recipient} is: >>> ${payload.code} <<<`);
+          return false;
+        }
+
+        console.log(`[ROVIN Email OTP] Successfully dispatched via Resend API to ${payload.recipient}. ID: ${data?.id}`);
+        return true;
+      } catch (err: any) {
+        console.error('[ROVIN Resend API Exception]:', err);
+        console.warn(`[ROVIN FALLBACK OTP ALERT] OTP code for ${payload.recipient} is: >>> ${payload.code} <<<`);
+        return false;
+      }
     }
+
+    // 2. Try SMTP Transporter
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: fromAddress,
+          to: payload.recipient,
+          subject: `[ROVIN] ${payload.code} is your ${actionLabel} code`,
+          html: htmlContent,
+        });
+        console.log(`[ROVIN Email OTP] Successfully dispatched via SMTP to ${payload.recipient}`);
+        return true;
+      } catch (err: any) {
+        console.error('[ROVIN SMTP Error]:', err);
+        console.warn(`[ROVIN FALLBACK OTP ALERT] SMTP failed: ${err.message}. OTP code for ${payload.recipient} is: >>> ${payload.code} <<<`);
+        return false;
+      }
+    }
+
+    // 3. Fallback when neither is configured
+    console.warn('[ROVIN Email OTP] Neither Resend nor SMTP credentials configured. Printing fallback to console:');
+    console.warn(`[ROVIN FALLBACK OTP ALERT] OTP code for ${payload.recipient} is: >>> ${payload.code} <<<`);
+    return true;
   }
 }
