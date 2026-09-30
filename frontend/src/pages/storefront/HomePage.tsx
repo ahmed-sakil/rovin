@@ -5,17 +5,13 @@ import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { ProductCard, ProductItem } from '../../components/product/ProductCard';
 import { BrandLogo } from '../../components/brand/BrandLogo';
+import { HeroMotionBackground } from '../../components/brand/HeroMotionBackground';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import {
-  Zap,
-  Sparkles,
-  Flame,
-  Truck,
-  ShieldCheck,
   Compass,
-  ArrowRight,
   ChevronRight,
   Package,
+  Truck,
 } from 'lucide-react';
 
 interface CategoryItem {
@@ -66,14 +62,11 @@ export const HomePage: React.FC = () => {
       <StorefrontNavbar />
 
       <main className="flex-1 w-full">
-        {/* HERO SHOWCASE SECTION */}
-        <section className="border-b border-fastener-border relative overflow-hidden bg-gradient-to-b from-carbon-slate to-pitch-obsidian py-12 sm:py-20 px-4 sm:px-6">
-          <div className="max-w-6xl mx-auto text-center relative z-10">
-            <div className="inline-flex items-center gap-2 telemetry-tag mb-4 border-nitro-amber/40 text-nitro-amber shadow-nitro-sm">
-              <Zap className="w-3.5 h-3.5 animate-pulse" />
-              HIGH-TORQUE BANGLADESH D2C COMMERCE
-            </div>
+        {/* HERO SHOWCASE SECTION WITH BRAND MOTION */}
+        <section className="border-b border-fastener-border relative overflow-hidden bg-gradient-to-b from-carbon-slate via-carbon-slate/75 to-pitch-obsidian py-16 sm:py-24 px-4 sm:px-6">
+          <HeroMotionBackground />
 
+          <div className="max-w-6xl mx-auto text-center relative z-10">
             <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight max-w-4xl mx-auto mb-4">
               CHISELED HARDWARE &bull;{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber via-yellow-400 to-nitro-orange">
@@ -82,7 +75,7 @@ export const HomePage: React.FC = () => {
             </h1>
 
             <p className="text-machined-muted text-xs sm:text-base max-w-2xl mx-auto font-normal leading-relaxed mb-8">
-              Precision gyro-assisted 1:16 drift chassis, high-clearance 4x4 trail crawlers, and CNC machined mechanical engine desk sculptures. Nationwide Cash on Delivery across all 64 districts.
+              Precision gyro-assisted 1:16 drift chassis, high-clearance 4x4 trail crawlers, and CNC machined mechanical engine desk sculptures. Nationwide Cash on Delivery across Bangladesh.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
@@ -96,24 +89,8 @@ export const HomePage: React.FC = () => {
                 to="/checkout"
                 className="outline-btn text-xs py-3.5 px-6 flex items-center gap-2"
               >
-                <Truck className="w-4 h-4 text-nitro-amber" /> Fast 1-Page Checkout
+                <Truck className="w-4 h-4 text-nitro-amber" /> Fast Checkout
               </Link>
-            </div>
-
-            {/* Logistics Telemetry Strip */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-12 pt-8 border-t border-fastener-border/80">
-              <div className="flex items-center justify-center gap-2 text-xs font-mono text-machined-silver">
-                <Truck className="w-4 h-4 text-nitro-amber" />
-                <span>Dhaka 24-48h (৳70) &bull; BD 48-72h (৳130)</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-xs font-mono text-machined-silver">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Zero Risk Cash on Delivery</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-xs font-mono text-machined-silver">
-                <Flame className="w-4 h-4 text-nitro-amber" />
-                <span>100% Pre-Dispatch Quality Tested</span>
-              </div>
             </div>
           </div>
         </section>
@@ -150,9 +127,6 @@ export const HomePage: React.FC = () => {
         <section id="new-arrivals" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
           <div className="flex items-end justify-between mb-8 pb-4 border-b border-fastener-border">
             <div>
-              <div className="inline-flex items-center gap-2 text-nitro-amber text-xs font-mono uppercase tracking-wider mb-1">
-                <Sparkles className="w-3.5 h-3.5" /> RECENT INVENTORY INGESTION
-              </div>
               <h2 className="font-orbitron font-black text-xl sm:text-2xl text-machined-titanium uppercase tracking-wide">
                 New Arrivals
               </h2>
@@ -161,18 +135,18 @@ export const HomePage: React.FC = () => {
               to="/products?sortBy=newest"
               className="font-orbitron text-xs font-bold text-nitro-amber hover:underline flex items-center gap-1.5"
             >
-              <span>View All New Gear</span>
+              <span>View All</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
           {loading ? (
             <div className="chassis-card p-12 text-center text-machined-dim font-mono text-sm">
-              Loading latest hardware telemetry...
+              Loading products...
             </div>
           ) : newArrivals.length === 0 ? (
             <div className="chassis-card p-12 text-center text-machined-dim font-mono text-xs">
-              No new equipment cataloged yet.
+              No products found.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -183,30 +157,27 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* SECTION 2: MOST SELLING / HIGH-VELOCITY FLASGSHIPS */}
+        {/* SECTION 2: MOST SELLING */}
         <section id="most-selling" className="border-t border-fastener-border bg-carbon-slate/30 py-12 sm:py-16 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-end justify-between mb-8 pb-4 border-b border-fastener-border">
               <div>
-                <div className="inline-flex items-center gap-2 text-nitro-orange text-xs font-mono uppercase tracking-wider mb-1">
-                  <Flame className="w-3.5 h-3.5" /> PROVEN TELEMETRY SPEED
-                </div>
                 <h2 className="font-orbitron font-black text-xl sm:text-2xl text-machined-titanium uppercase tracking-wide">
-                  Most Selling & High-Velocity Flagships
+                  Most Selling
                 </h2>
               </div>
               <Link
                 to="/products"
                 className="font-orbitron text-xs font-bold text-nitro-amber hover:underline flex items-center gap-1.5"
               >
-                <span>Full Hangar</span>
+                <span>View All</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
             {loading ? (
               <div className="chassis-card p-12 text-center text-machined-dim font-mono text-sm">
-                Calibrating top velocity rankings...
+                Loading products...
               </div>
             ) : bestsellers.length === 0 ? (
               <div className="chassis-card p-12 text-center text-machined-dim font-mono text-xs">

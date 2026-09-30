@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { BrandLogo } from '../../components/brand/BrandLogo';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
-import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, User } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   usePageTitle('Login', 'Secure Account Authentication');
@@ -43,19 +43,18 @@ export const LoginPage: React.FC = () => {
 
       <div className="w-full max-w-md">
         {/* Brand Emblem */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block hover:scale-105 transition-transform">
-            <BrandLogo variant="full" size="lg" className="mx-auto mb-2" />
+        <div className="text-center mb-6">
+          <Link to="/" className="inline-block hover:opacity-80 transition-opacity">
+            <h1 className="font-orbitron font-black text-3xl tracking-[0.25em] text-machined-titanium">
+              ROVIN
+            </h1>
           </Link>
-          <p className="text-xs font-mono text-machined-dim uppercase tracking-wider">
-            ROVIN PILOT LOGIN
-          </p>
         </div>
 
         {/* Card */}
         <div className="chassis-card p-6 sm:p-8 border-nitro-amber/40 shadow-chassis">
           <div className="flex items-center gap-2 mb-6 pb-3 border-b border-fastener-border">
-            <BrandLogo variant="icon" size="sm" />
+            <User className="w-5 h-5 text-nitro-amber" />
             <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
               Login
             </h2>

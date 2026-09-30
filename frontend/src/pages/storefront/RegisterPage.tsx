@@ -88,20 +88,19 @@ export const RegisterPage: React.FC = () => {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <Link to="/" className="inline-block hover:scale-105 transition-transform">
-            <BrandLogo variant="full" size="lg" className="mx-auto mb-2" />
+          <Link to="/" className="inline-block hover:opacity-80 transition-opacity">
+            <h1 className="font-orbitron font-black text-3xl tracking-[0.25em] text-machined-titanium">
+              ROVIN
+            </h1>
           </Link>
-          <p className="text-xs font-mono text-machined-dim uppercase tracking-wider">
-            ROVIN PILOT REGISTRATION PROTOCOL
-          </p>
         </div>
 
         <div className="chassis-card p-6 sm:p-8 border-nitro-amber/40 shadow-chassis">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-fastener-border">
             <div className="flex items-center gap-2">
-              <BrandLogo variant="icon" size="sm" />
+              <User className="w-5 h-5 text-nitro-amber" />
               <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-                {step === 1 ? 'Create Account' : 'Verify 6-Digit Code'}
+                {step === 1 ? 'Create Account' : 'Verify Code'}
               </h2>
             </div>
             <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber text-[10px]">
@@ -138,13 +137,13 @@ export const RegisterPage: React.FC = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="pilot@rovin.com.bd"
+                    placeholder="name@example.com"
                     className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                    BD Mobile (11 Digits)
+                    Mobile Number
                   </label>
                   <input
                     type="tel"

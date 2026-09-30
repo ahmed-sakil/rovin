@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -25,17 +25,31 @@ import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminSettings } from './pages/admin/AdminSettings';
 
+// Scroll to top helper on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const location = useLocation();
 
   return (
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
-          <Routes>
-            {/* Storefront: Curated Home Experience */}
-            <Route path="/" element={<HomePage />} />
+          <ScrollToTop />
+          <div key={location.pathname} className="page-transition w-full min-h-screen">
+            <Routes>
+              {/* Storefront: Curated Home Experience */}
+              <Route path="/" element={<HomePage />} />
 
             {/* Dedicated All Equipment Catalog */}
             <Route path="/products" element={<ProductCatalog />} />
@@ -65,8 +79,9 @@ export default function App() {
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Routes>
+        </div>
 
-          {/* Quick-Access Modal */}
+        {/* Quick-Access Modal */}
           <AuthModal
             isOpen={authModalOpen}
             onClose={() => setAuthModalOpen(false)}

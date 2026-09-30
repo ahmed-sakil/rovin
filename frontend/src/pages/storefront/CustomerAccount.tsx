@@ -736,7 +736,7 @@ export const CustomerAccount: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
-                      BD Mobile (11 Digits)
+                      Mobile Number
                     </label>
                     <div className="relative">
                       <Phone className="w-4 h-4 text-machined-dim absolute left-3 top-3" />

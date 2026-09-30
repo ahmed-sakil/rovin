@@ -25,6 +25,9 @@ import {
   CheckSquare,
   Square,
   Sparkles,
+  Trash2,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -438,7 +441,7 @@ export const CheckoutPage: React.FC = () => {
                             </div>
                             <div>
                               <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
-                                BD Mobile (11 Digits)
+                                Mobile Number
                               </label>
                               <input
                                 type="tel"
@@ -776,27 +779,80 @@ export const CheckoutPage: React.FC = () => {
               </h2>
 
               {/* Items List */}
-              <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
-                {items.map((item) => (
-                  <div key={item.productId} className="flex gap-3 text-xs">
-                    <img
-                      src={item.image || '/brand/rovin-icon.svg'}
-                      alt={item.title}
-                      className="w-14 h-14 object-cover rounded border border-fastener-border flex-shrink-0"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-machined-titanium line-clamp-1">{item.title}</h4>
-                      <p className="font-mono text-machined-dim text-[11px]">
-                        ৳{item.price.toLocaleString()} &bull; Qty: {item.quantity}
-                        {item.chosenColor && ` &bull; Color: ${item.chosenColor}`}
-                      </p>
-                      <p className="font-mono text-nitro-amber font-bold mt-1">
-                        ৳{(item.price * item.quantity).toLocaleString()}
-                      </p>
+              {items.length === 0 ? (
+                <div className="py-8 text-center">
+                  <ShoppingBag className="w-8 h-8 text-machined-dim mx-auto mb-2" />
+                  <p className="text-xs font-mono text-machined-silver mb-3">Your cart is empty.</p>
+                  <Link
+                    to="/products"
+                    className="nitro-btn text-xs py-2 px-4 inline-flex items-center gap-1.5"
+                  >
+                    Browse Catalog
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                  {items.map((item) => (
+                    <div
+                      key={`${item.productId}-${item.chosenColor || ''}`}
+                      className="flex gap-3 text-xs p-2.5 rounded-lg bg-carbon-elevated/50 border border-fastener-border"
+                    >
+                      <img
+                        src={item.image || '/brand/rovin-icon.svg'}
+                        alt={item.title}
+                        className="w-14 h-14 object-cover rounded border border-fastener-border flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-1">
+                          <h4 className="font-semibold text-machined-titanium line-clamp-1">{item.title}</h4>
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(item.productId, item.chosenColor)}
+                            className="text-machined-dim hover:text-red-400 p-1 -mt-1 -mr-1 rounded transition-colors"
+                            title="Remove from cart"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <p className="font-mono text-machined-dim text-[11px]">
+                          ৳{item.price.toLocaleString()}
+                          {item.chosenColor && ` • Color: ${item.chosenColor}`}
+                        </p>
+
+                        <div className="flex items-center justify-between mt-2 pt-1 border-t border-fastener-border/60">
+                          {/* Quantity Adjuster */}
+                          <div className="flex items-center gap-1.5 bg-carbon-card border border-fastener-border rounded px-1.5 py-0.5">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.productId, item.quantity - 1, item.chosenColor)}
+                              className="text-machined-dim hover:text-machined-titanium p-0.5 transition-colors"
+                              title="Decrease quantity"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="font-mono text-xs font-bold text-machined-titanium px-1.5 min-w-[1.25rem] text-center">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.productId, item.quantity + 1, item.chosenColor)}
+                              disabled={item.quantity >= item.stockQuantity}
+                              className="text-machined-dim hover:text-machined-titanium p-0.5 transition-colors disabled:opacity-40"
+                              title="Increase quantity"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          <span className="font-mono text-nitro-amber font-bold text-xs">
+                            ৳{(item.price * item.quantity).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* Coupon Engine */}
               <div className="pt-4 mt-4 border-t border-fastener-border">
@@ -828,7 +884,7 @@ export const CheckoutPage: React.FC = () => {
               {/* Financial Calculation */}
               <div className="pt-4 mt-4 border-t border-fastener-border space-y-2 text-xs font-mono">
                 <div className="flex justify-between text-machined-silver">
-                  <span>Equipment Subtotal:</span>
+                  <span>Subtotal:</span>
                   <span>৳{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-machined-silver">
@@ -852,16 +908,22 @@ export const CheckoutPage: React.FC = () => {
               {/* Confirmation Button */}
               <button
                 type="submit"
-                disabled={loading}
-                className="nitro-btn w-full text-xs py-3.5 mt-6 shadow-nitro flex items-center justify-center gap-2"
+                disabled={loading || items.length === 0}
+                className="nitro-btn w-full text-xs py-3.5 mt-6 shadow-nitro flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {loading ? 'Transmitting Mission Order...' : !isAuthenticated ? 'Sign In / Register Above to Confirm Order' : 'Authorize & Confirm Order'}
+                {loading
+                  ? 'Processing Order...'
+                  : items.length === 0
+                  ? 'Cart is Empty'
+                  : !isAuthenticated
+                  ? 'Login / Register to Complete Order'
+                  : 'Confirm Order'}
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <div className="mt-4 pt-4 border-t border-fastener-border text-center text-[10px] font-mono text-machined-dim flex items-center justify-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>ROVIN 100% Quality & Pre-Dispatch Tested Guarantee</span>
+                <span>Quality Inspected • Fast Doorstep Delivery</span>
               </div>
             </div>
           </div>
