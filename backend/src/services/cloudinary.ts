@@ -50,7 +50,7 @@ export async function uploadImageBuffer(
           });
         }
       );
-      uploadStream.end(buffer);
+      (uploadStream as any).end(buffer);
     });
   }
 
