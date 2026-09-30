@@ -10,30 +10,73 @@ import adminRoutes from './routes/adminRoutes.js';
 import cmsRoutes from './routes/cmsRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 
+import { prisma } from './lib/prisma.js';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5050;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Security & Parsing Middlewares
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}));
-app.use(cors({
-  origin: [CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173'],
-  credentials: true
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// Dynamic CORS Configuration (Supports Vercel previews & production domains)
+const configuredClientUrls = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((u) => u.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5050',
+  'http://127.0.0.1:5173',
+  ...configuredClientUrls,
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow mobile apps, curl, and server-to-server requests
+      if (!origin) return callback(null, true);
+
+      const isVercelDomain = /\.vercel\.app$/.test(origin);
+      const isConfigured = defaultOrigins.includes(origin.replace(/\/+$/, ''));
+
+      if (isConfigured || isVercelDomain || process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health Check Endpoint
-app.get('/api/health', (req: Request, res: Response) => {
+// Health Check Endpoint (Includes live database connectivity check)
+app.get('/api/health', async (req: Request, res: Response) => {
+  let dbStatus = 'DISCONNECTED';
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbStatus = 'CONNECTED';
+  } catch (err: any) {
+    dbStatus = `ERROR: ${err.message}`;
+  }
+
   res.status(200).json({
     status: 'ONLINE',
     service: 'ROVIN Precision E-Commerce Core API',
+    database: dbStatus,
     uptime: process.uptime(),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production',
   });
 });
 
