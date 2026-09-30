@@ -220,7 +220,7 @@ export const ProductDetail: React.FC = () => {
 
               <button
                 onClick={handleBuyNow}
-                className="w-full nitro-btn py-3.5 text-xs font-bold tracking-widest shadow-nitro"
+                className="w-full nitro-btn py-3.5 text-xs font-bold tracking-widest"
               >
                 PROCEED TO 1-PAGE CHECKOUT (৳{(displayPrice * quantity).toLocaleString()})
               </button>

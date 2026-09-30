@@ -83,12 +83,10 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
           )}
         </nav>
 
-        {/* Right Action Icons: Theme, Cart, Profile / Admin */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Theme Toggle (Dark / Light) - Desktop Only */}
-          <div className="hidden sm:block">
-            <ThemeToggle />
-          </div>
+        {/* Right Action Icons: Theme, Cart, Profile / Admin (Desktop/Tablet only; Mobile uses bottom bar & burger menu) */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Theme Toggle (Dark / Light) */}
+          <ThemeToggle />
 
           {/* Cart Button with Counter */}
           <Link
@@ -98,7 +96,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
           >
             <ShoppingBag className="w-5 h-5" />
             {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-nitro-amber text-pitch-obsidian font-mono text-[9px] font-black flex items-center justify-center shadow-nitro-sm">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-nitro-amber text-pitch-obsidian font-mono text-[9px] font-black flex items-center justify-center">
                 {itemCount}
               </span>
             )}
@@ -108,16 +106,16 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
           {isAdmin && (
             <Link
               to="/admin"
-              className="hidden sm:inline-flex items-center gap-1.5 nitro-btn text-xs py-1.5 px-3"
+              className="inline-flex items-center gap-1.5 nitro-btn text-xs py-1.5 px-3"
             >
               <Boxes className="w-3.5 h-3.5" />
               Command
             </Link>
           )}
 
-          {/* User Profile / Access - Desktop Only (Mobile accessed via Burger Menu) */}
+          {/* User Profile / Access */}
           {isAuthenticated && user ? (
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Link
                 to="/account"
                 className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-lg border border-fastener-border bg-carbon-card hover:border-nitro-amber transition-all"
@@ -143,7 +141,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
           ) : (
             <Link
               to="/login"
-              className="outline-btn text-xs py-1.5 px-3.5 hidden sm:inline-flex"
+              className="outline-btn text-xs py-1.5 px-3.5 inline-flex"
             >
               Login
             </Link>
@@ -201,7 +199,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                   <Link
                     to="/login"
                     onClick={() => setBurgerOpen(false)}
-                    className="w-full nitro-btn text-xs py-2.5 text-center flex items-center justify-center gap-2 shadow-nitro-sm"
+                    className="w-full nitro-btn text-xs py-2.5 text-center flex items-center justify-center gap-2"
                   >
                     <User className="w-4 h-4" />
                     <span>Login / Register</span>

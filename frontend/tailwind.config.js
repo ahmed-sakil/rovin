@@ -56,9 +56,9 @@ export default {
         inter: ['Inter', 'sans-serif'],
       },
       boxShadow: {
-        'nitro': '0 0 20px rgba(var(--color-nitro-amber), 0.25)',
-        'nitro-sm': '0 0 10px rgba(var(--color-nitro-amber), 0.2)',
-        'chassis': '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+        'nitro': '0 2px 4px rgba(0, 0, 0, 0.12)',
+        'nitro-sm': '0 1px 2px rgba(0, 0, 0, 0.08)',
+        'chassis': '0 4px 16px 0 rgba(0, 0, 0, 0.2)',
       }
     },
   },

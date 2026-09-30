@@ -223,7 +223,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="nitro-btn text-xs py-2.5 px-6 shadow-nitro"
+            className="nitro-btn text-xs py-2.5 px-6"
           >
             Apply ({totalResults} Units Available)
           </button>

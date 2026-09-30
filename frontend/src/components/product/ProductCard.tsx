@@ -44,7 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className = '
   return (
     <div
       onClick={handleCardClick}
-      className={`chassis-card flex flex-col justify-between overflow-hidden group cursor-pointer hover:border-nitro-amber/60 hover:shadow-nitro-sm transition-all select-none w-full min-w-0 sm:min-w-[400px] ${className}`}
+      className={`chassis-card flex flex-col justify-between overflow-hidden group cursor-pointer hover:border-nitro-amber/60 transition-all select-none w-full min-w-0 sm:min-w-[400px] ${className}`}
     >
       <div>
         {/* Product Visual Surface */}
@@ -59,7 +59,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className = '
           {/* Badges Overlay */}
           <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 items-start">
             {product.isSpecial && (
-              <span className="telemetry-tag border-nitro-amber/60 bg-pitch-obsidian/90 text-nitro-amber font-bold shadow-nitro-sm">
+              <span className="telemetry-tag border-nitro-amber/60 bg-pitch-obsidian/90 text-nitro-amber font-bold">
                 SPECIAL
               </span>
             )}

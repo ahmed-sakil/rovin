@@ -84,7 +84,7 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-start gap-4">
               <Link
                 to="/products"
-                className="nitro-btn text-xs py-3.5 px-7 flex items-center gap-2 shadow-nitro"
+                className="nitro-btn text-xs py-3.5 px-7 flex items-center gap-2"
               >
                 <Compass className="w-4 h-4" /> Explore Equipment Hangar
               </Link>
@@ -104,7 +104,7 @@ export const HomePage: React.FC = () => {
             <div className="flex items-end justify-between mb-8 pb-4 border-b border-fastener-border">
               <div>
                 <h2 className="font-orbitron font-black text-xl sm:text-2xl text-machined-titanium uppercase tracking-wide flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber shadow-nitro-sm animate-pulse" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber" />
                   Special Items
                 </h2>
               </div>

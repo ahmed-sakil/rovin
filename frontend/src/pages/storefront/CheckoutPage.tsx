@@ -909,7 +909,7 @@ export const CheckoutPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading || items.length === 0}
-                className="nitro-btn w-full text-xs py-3.5 mt-6 shadow-nitro flex items-center justify-center gap-2 disabled:opacity-50"
+                className="nitro-btn w-full text-xs py-3.5 mt-6 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading
                   ? 'Processing Order...'
