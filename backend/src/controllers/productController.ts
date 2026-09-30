@@ -333,3 +333,123 @@ export async function adjustStock(req: Request, res: Response): Promise<void> {
     res.status(500).json({ success: false, message: 'Stock adjustment failed.' });
   }
 }
+
+/**
+ * 6. Get Product Reviews
+ */
+export async function getProductReviews(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const target = String(id);
+
+    const product = await prisma.product.findFirst({
+      where: { OR: [{ id: target }, { slug: target }] },
+      select: { id: true },
+    });
+
+    if (!product) {
+      res.status(404).json({ success: false, message: 'Product not found.' });
+      return;
+    }
+
+    const reviews = await prisma.review.findMany({
+      where: { productId: product.id, isApproved: true },
+      include: {
+        user: { select: { id: true, name: true, profileImageUrl: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const total = reviews.length;
+    const avgRating = total > 0
+      ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / total).toFixed(1))
+      : 5.0;
+
+    res.status(200).json({
+      success: true,
+      reviews,
+      stats: {
+        total,
+        averageRating: avgRating,
+      },
+    });
+  } catch (error: any) {
+    console.error('[getProductReviews Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve reviews.' });
+  }
+}
+
+/**
+ * 7. Submit Product Review
+ */
+export async function createProductReview(req: any, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const target = String(id);
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Authentication required to submit review.' });
+      return;
+    }
+
+    const { rating, comment, title } = req.body;
+    const numRating = Number(rating);
+
+    if (!numRating || numRating < 1 || numRating > 5) {
+      res.status(400).json({ success: false, message: 'Rating must be an integer between 1 and 5.' });
+      return;
+    }
+
+    if (!comment || comment.trim().length < 3) {
+      res.status(400).json({ success: false, message: 'Review comment must be at least 3 characters.' });
+      return;
+    }
+
+    const product = await prisma.product.findFirst({
+      where: { OR: [{ id: target }, { slug: target }] },
+      select: { id: true },
+    });
+
+    if (!product) {
+      res.status(404).json({ success: false, message: 'Product not found.' });
+      return;
+    }
+
+    // Check if user has purchased this product
+    const orderWithProduct = await prisma.order.findFirst({
+      where: {
+        userId,
+        orderStatus: { not: 'CANCELLED' },
+        orderItems: { some: { productId: product.id } },
+      },
+    });
+
+    const isVerifiedPurchase = !!orderWithProduct;
+
+    const review = await prisma.review.create({
+      data: {
+        productId: product.id,
+        userId,
+        rating: Math.round(numRating),
+        comment: comment.trim(),
+        title: title ? title.trim() : null,
+        isVerifiedPurchase,
+        isApproved: true,
+      },
+      include: {
+        user: { select: { id: true, name: true, profileImageUrl: true } },
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Review successfully recorded.',
+      review,
+    });
+  } catch (error: any) {
+    console.error('[createProductReview Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to record review.' });
+  }
+}
+

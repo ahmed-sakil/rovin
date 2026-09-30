@@ -129,6 +129,17 @@ export const HomePage: React.FC = () => {
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
+
+            {/* Mobile-Only Section Bottom Action */}
+            <div className="mt-6 sm:hidden text-center">
+              <Link
+                to="/products"
+                className="nitro-btn w-full text-xs py-3 flex items-center justify-center gap-2"
+              >
+                <span>View All Special Items</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
           </section>
         )}
 
@@ -158,11 +169,24 @@ export const HomePage: React.FC = () => {
               No products found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
-              {newArrivals.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
+                {newArrivals.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Mobile-Only Section Bottom Action */}
+              <div className="mt-6 sm:hidden text-center">
+                <Link
+                  to="/products?sortBy=newest"
+                  className="nitro-btn w-full text-xs py-3 flex items-center justify-center gap-2"
+                >
+                  <span>View All New Arrivals</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </>
           )}
         </section>
 
@@ -193,11 +217,24 @@ export const HomePage: React.FC = () => {
                 No orders registered yet.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
-                {bestsellers.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
+                  {bestsellers.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {/* Mobile-Only Section Bottom Action */}
+                <div className="mt-6 sm:hidden text-center">
+                  <Link
+                    to="/products"
+                    className="nitro-btn w-full text-xs py-3 flex items-center justify-center gap-2"
+                  >
+                    <span>View All Most Selling</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </>
             )}
           </div>
         </section>

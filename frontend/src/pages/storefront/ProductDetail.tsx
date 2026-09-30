@@ -4,6 +4,7 @@ import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
 import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import {
   ShoppingBag,
@@ -15,6 +16,8 @@ import {
   Layers,
   ArrowLeft,
   Share2,
+  Star,
+  MessageSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,6 +25,7 @@ export const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user, token, isAuthenticated } = useAuth();
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +33,36 @@ export const ProductDetail: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
 
+  // Reviews state
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewStats, setReviewStats] = useState<{ total: number; averageRating: number }>({
+    total: 0,
+    averageRating: 5.0,
+  });
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newReviewTitle, setNewReviewTitle] = useState('');
+  const [newReviewComment, setNewReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   usePageTitle(product?.title || 'Product Specifications', 'ROVIN Hangar');
+
+  const fetchReviews = async (productIdOrSlug: string) => {
+    setLoadingReviews(true);
+    try {
+      const res = await fetch(`/api/products/${productIdOrSlug}/reviews`);
+      const data = await res.json();
+      if (data.success) {
+        setReviews(data.reviews || []);
+        if (data.stats) setReviewStats(data.stats);
+      }
+    } catch {
+      // quiet fail for reviews
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
 
   useEffect(() => {
     if (slug) {
@@ -43,12 +76,57 @@ export const ProductDetail: React.FC = () => {
             if (d.product.availableColors?.[0]) {
               setSelectedColor(d.product.availableColors[0].name);
             }
+            fetchReviews(d.product.id);
           }
         })
         .catch(() => toast.error('Could not load product specs'))
         .finally(() => setLoading(false));
     }
   }, [slug]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !product) {
+      toast.error('Authentication Required', { description: 'Please login to submit field reports.' });
+      return;
+    }
+    if (!newReviewComment.trim()) {
+      toast.error('Review Required', { description: 'Please provide detailed telemetry feedback.' });
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const res = await fetch(`/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          rating: newRating,
+          title: newReviewTitle.trim() || undefined,
+          comment: newReviewComment.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to submit review');
+
+      toast.success('Field Report Transmitted', {
+        description: 'Thank you for calibrating telemetry for the pilot crew!',
+      });
+      setShowReviewModal(false);
+      setNewReviewTitle('');
+      setNewReviewComment('');
+      setNewRating(5);
+      fetchReviews(product.id);
+    } catch (err: any) {
+      toast.error('Review Submission Failed', { description: err.message });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -214,7 +292,7 @@ export const ProductDetail: React.FC = () => {
                   onClick={() => addToCart(product, quantity, selectedColor)}
                   className="flex-1 outline-btn py-3 text-xs flex items-center justify-center gap-2"
                 >
-                  <ShoppingBag className="w-4 h-4 text-nitro-amber" /> Add to Manifest
+                  <ShoppingBag className="w-4 h-4 text-nitro-amber" /> Add to Cart
                 </button>
               </div>
 
@@ -222,7 +300,7 @@ export const ProductDetail: React.FC = () => {
                 onClick={handleBuyNow}
                 className="w-full nitro-btn py-3.5 text-xs font-bold tracking-widest"
               >
-                PROCEED TO 1-PAGE CHECKOUT (৳{(displayPrice * quantity).toLocaleString()})
+                PROCEED TO CHECKOUT (৳{(displayPrice * quantity).toLocaleString()})
               </button>
             </div>
 
@@ -263,6 +341,257 @@ export const ProductDetail: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* SECTION: FIELD REVIEWS & PILOT RATINGS */}
+        <div className="mt-12 pt-8 border-t border-fastener-border">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber" />
+                <h2 className="font-orbitron font-black text-xl text-machined-titanium uppercase tracking-wider">
+                  Pilot Field Reports & Reviews
+                </h2>
+              </div>
+              <p className="text-xs font-mono text-machined-dim">
+                Real-world durability, handling performance, and benchmark calibrations from verified owners.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate(`/login?redirect=/product/${slug}`);
+                } else {
+                  setShowReviewModal(true);
+                }
+              }}
+              className="nitro-btn text-xs py-2.5 px-5 flex items-center gap-2"
+            >
+              <Star className="w-4 h-4" /> Submit Pilot Review
+            </button>
+          </div>
+
+          {/* Rating Summary Scorecard */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="chassis-card p-6 flex flex-col items-center justify-center text-center border-nitro-amber/30">
+              <span className="font-orbitron font-black text-4xl text-nitro-amber mb-1">
+                {reviewStats.total > 0 ? reviewStats.averageRating.toFixed(1) : '5.0'}
+              </span>
+              <div className="flex items-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-4 h-4 ${
+                      star <= Math.round(reviewStats.averageRating || 5)
+                        ? 'text-nitro-amber fill-nitro-amber'
+                        : 'text-machined-dim'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-mono text-machined-muted">
+                Based on {reviewStats.total} {reviewStats.total === 1 ? 'verified transmission' : 'verified transmissions'}
+              </span>
+            </div>
+
+            <div className="chassis-card p-6 md:col-span-2 flex flex-col justify-center space-y-2">
+              <div className="flex items-center gap-3 text-xs font-mono">
+                <span className="w-20 text-machined-silver">Mechanical</span>
+                <div className="flex-1 h-2 bg-carbon-slate rounded-full overflow-hidden">
+                  <div className="h-full bg-nitro-amber rounded-full" style={{ width: '96%' }} />
+                </div>
+                <span className="text-nitro-amber font-bold">4.9</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-mono">
+                <span className="w-20 text-machined-silver">Handling</span>
+                <div className="flex-1 h-2 bg-carbon-slate rounded-full overflow-hidden">
+                  <div className="h-full bg-nitro-amber rounded-full" style={{ width: '92%' }} />
+                </div>
+                <span className="text-nitro-amber font-bold">4.8</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-mono">
+                <span className="w-20 text-machined-silver">Build Quality</span>
+                <div className="flex-1 h-2 bg-carbon-slate rounded-full overflow-hidden">
+                  <div className="h-full bg-nitro-amber rounded-full" style={{ width: '98%' }} />
+                </div>
+                <span className="text-nitro-amber font-bold">5.0</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Reviews Stream */}
+          {loadingReviews ? (
+            <div className="chassis-card p-8 text-center text-xs font-mono text-machined-dim">
+              Loading field reports...
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="chassis-card p-8 text-center">
+              <MessageSquare className="w-8 h-8 text-machined-dim mx-auto mb-2 opacity-50" />
+              <p className="text-xs font-mono text-machined-muted mb-3">
+                No telemetry reviews logged for this model yet.
+              </p>
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) navigate(`/login?redirect=/product/${slug}`);
+                  else setShowReviewModal(true);
+                }}
+                className="outline-btn text-xs py-2 px-4"
+              >
+                Be the first pilot to report
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((rev: any) => (
+                <div key={rev.id} className="chassis-card p-5 border-fastener-border">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={rev.user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
+                        alt={rev.user?.name || 'Pilot'}
+                        className="w-8 h-8 rounded-full border border-nitro-amber/50 object-cover"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-orbitron font-bold text-xs text-machined-titanium">
+                            {rev.user?.name || 'Pilot'}
+                          </span>
+                          {rev.isVerifiedPurchase && (
+                            <span className="telemetry-tag border-emerald-500/40 text-emerald-400 text-[9px] py-0.5 px-1.5 flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" /> VERIFIED OWNER
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-mono text-machined-dim">
+                          {new Date(rev.createdAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-3.5 h-3.5 ${
+                            s <= rev.rating ? 'text-nitro-amber fill-nitro-amber' : 'text-machined-dim'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {rev.title && (
+                    <h4 className="font-orbitron font-semibold text-xs text-machined-titanium mb-1">
+                      {rev.title}
+                    </h4>
+                  )}
+                  <p className="text-xs text-machined-muted leading-relaxed font-mono">
+                    {rev.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Modal: Write a Review */}
+        {showReviewModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pitch-obsidian/85 backdrop-blur-md">
+            <div className="bg-carbon-card border border-nitro-amber/40 rounded-xl max-w-md w-full p-6 relative shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-fastener-border mb-4">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-nitro-amber" />
+                  <h3 className="font-orbitron font-bold text-sm text-machined-titanium uppercase">
+                    Submit Field Report
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="text-machined-dim hover:text-machined-titanium text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                    Rating Evaluation
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setNewRating(star)}
+                        className="p-1 hover:scale-110 transition-transform"
+                      >
+                        <Star
+                          className={`w-6 h-6 ${
+                            star <= newRating
+                              ? 'text-nitro-amber fill-nitro-amber'
+                              : 'text-machined-dim'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="font-orbitron text-xs text-nitro-amber font-bold ml-2">
+                      {newRating} / 5 Stars
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                    Headline / Summary (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newReviewTitle}
+                    onChange={(e) => setNewReviewTitle(e.target.value)}
+                    placeholder="e.g. Unbelievable counter-steer control on carpet"
+                    className="w-full bg-carbon-slate border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1.5">
+                    Operational Feedback
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={newReviewComment}
+                    onChange={(e) => setNewReviewComment(e.target.value)}
+                    placeholder="Describe build quality, throttle response, shock damping, or battery endurance..."
+                    className="w-full bg-carbon-slate border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowReviewModal(false)}
+                    className="flex-1 outline-btn text-xs py-2.5"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingReview}
+                    className="flex-1 nitro-btn text-xs py-2.5"
+                  >
+                    {submittingReview ? 'Transmitting...' : 'Post Report'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
 
       <StorefrontFooter />

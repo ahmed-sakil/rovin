@@ -109,6 +109,16 @@ export const CustomerAccount: React.FC = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
+  const isProfileDirty = Boolean(
+    user && (
+      editName.trim() !== (user.name || '').trim() ||
+      editPhone.trim() !== (user.phone || '').trim() ||
+      editGender !== (user.gender || 'MALE') ||
+      editDob !== (user.dateOfBirth ? user.dateOfBirth.slice(0, 10) : '') ||
+      editAvatar !== (user.profileImageUrl || '/assets/avatars/avatar-m1.svg')
+    )
+  );
+
   useEffect(() => {
     if (user) {
       setEditName(user.name || '');
@@ -430,47 +440,47 @@ export const CustomerAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-fastener-border mb-8 overflow-x-auto">
+        {/* Tab Navigation (Horizontal Scrollable Ribbon on Short/Mobile Devices) */}
+        <div className="flex border-b border-fastener-border mb-8 overflow-x-auto no-scrollbar scroll-smooth gap-1 sm:gap-2">
           <button
             onClick={() => setActiveTab('orders')}
-            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'orders'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <Package className="w-4 h-4" /> Orders & Mission Telemetry ({orders.length})
+            <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Orders ({orders.length})
           </button>
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'profile'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <User className="w-4 h-4" /> Edit Profile & Telemetry
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Profile
           </button>
           <button
             onClick={() => setActiveTab('addresses')}
-            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'addresses'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <MapPin className="w-4 h-4" /> Delivery Addresses ({user?.addresses?.length || 0})
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Addresses ({user?.addresses?.length || 0})
           </button>
           <button
             onClick={() => setActiveTab('security')}
-            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-3 sm:px-6 font-orbitron font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'security'
                 ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <Lock className="w-4 h-4" /> Security & Key
+            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Security
           </button>
         </div>
 
@@ -891,10 +901,18 @@ export const CustomerAccount: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={savingProfile}
-                    className="nitro-btn w-full text-xs py-3 flex items-center justify-center gap-2"
+                    disabled={savingProfile || !isProfileDirty}
+                    className={`w-full text-xs py-3 flex items-center justify-center gap-2 font-orbitron font-bold uppercase tracking-wider rounded transition-all ${
+                      isProfileDirty
+                        ? 'nitro-btn cursor-pointer'
+                        : 'bg-carbon-slate text-machined-dim border border-fastener-border opacity-40 cursor-not-allowed shadow-none'
+                    }`}
                   >
-                    {savingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
+                    {savingProfile
+                      ? 'Saving Changes...'
+                      : isProfileDirty
+                      ? 'Save Profile Changes'
+                      : 'No Changes Detected'}
                   </button>
                 </div>
               </form>

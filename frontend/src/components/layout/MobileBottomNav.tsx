@@ -60,7 +60,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAuth }) 
 
       {isAuthenticated && (
         <NavLink
-          to="/account"
+          to="/orders"
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 text-[10px] font-mono tracking-wider transition-colors ${
               isActive ? 'text-nitro-amber font-bold' : 'text-machined-dim hover:text-machined-muted'

@@ -121,19 +121,35 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className = '
           </span>
         </div>
 
-        <button
-          onClick={handleBuyNow}
-          disabled={isOutOfStock}
-          className="nitro-btn w-full text-xs py-2.5 flex items-center justify-center gap-1.5"
-        >
-          {isOutOfStock ? (
-            'Out of Stock'
-          ) : (
-            <>
-              <ShoppingBag className="w-3.5 h-3.5" /> Buy Now
-            </>
-          )}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (isOutOfStock) return;
+              addToCart(product, 1);
+            }}
+            disabled={isOutOfStock}
+            className="outline-btn text-[11px] py-2 flex items-center justify-center gap-1 border-fastener-border hover:border-nitro-amber text-machined-silver hover:text-nitro-amber"
+            title="Add to Cart"
+          >
+            <ShoppingBag className="w-3.5 h-3.5 text-nitro-amber" /> Add to Cart
+          </button>
+
+          <button
+            onClick={handleBuyNow}
+            disabled={isOutOfStock}
+            className="nitro-btn text-[11px] py-2 flex items-center justify-center gap-1"
+          >
+            {isOutOfStock ? (
+              'Out of Stock'
+            ) : (
+              <>
+                Buy Now <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import { ProductDetail } from './pages/storefront/ProductDetail';
 import { CheckoutPage } from './pages/storefront/CheckoutPage';
 import { OrderSuccess } from './pages/storefront/OrderSuccess';
 import { CustomerAccount } from './pages/storefront/CustomerAccount';
+import { CustomerOrders } from './pages/storefront/CustomerOrders';
 import { LoginPage } from './pages/storefront/LoginPage';
 import { RegisterPage } from './pages/storefront/RegisterPage';
 import { CmsPage } from './pages/storefront/CmsPage';
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/account" element={<CustomerAccount />} />
             <Route path="/pilot" element={<CustomerAccount />} />
+            <Route path="/orders" element={<CustomerOrders />} />
 
             {/* CMS Informational Pages */}
             <Route path="/about" element={<CmsPage slugOverride="about-us" />} />
