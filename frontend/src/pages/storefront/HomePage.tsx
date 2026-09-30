@@ -4,13 +4,11 @@ import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
 import { StorefrontFooter } from '../../components/layout/StorefrontFooter';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { ProductCard, ProductItem } from '../../components/product/ProductCard';
-import { BrandLogo } from '../../components/brand/BrandLogo';
 import { HeroMotionBackground } from '../../components/brand/HeroMotionBackground';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import {
   Compass,
   ChevronRight,
-  Package,
   Truck,
 } from 'lucide-react';
 

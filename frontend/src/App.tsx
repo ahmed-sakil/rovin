@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { AuthModal } from './components/auth/AuthModal';
 
 // Storefront Pages
 import { HomePage } from './pages/storefront/HomePage';
@@ -48,9 +47,6 @@ function ScrollToTop() {
 }
 
 export default function App() {
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -61,43 +57,36 @@ export default function App() {
               {/* Storefront: Curated Home Experience */}
               <Route path="/" element={<HomePage />} />
 
-            {/* Dedicated All Equipment Catalog */}
-            <Route path="/products" element={<ProductCatalog />} />
+              {/* Dedicated All Equipment Catalog */}
+              <Route path="/products" element={<ProductCatalog />} />
 
-            {/* Product Specifications & Order Placement */}
-            <Route path="/product/:slug" element={<ProductDetail />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
+              {/* Product Specifications & Order Placement */}
+              <Route path="/product/:slug" element={<ProductDetail />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
 
-            {/* Pilot Identity & Management */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/account" element={<CustomerAccount />} />
-            <Route path="/pilot" element={<CustomerAccount />} />
-            <Route path="/orders" element={<CustomerOrders />} />
+              {/* Pilot Identity & Management */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/account" element={<CustomerAccount />} />
+              <Route path="/pilot" element={<CustomerAccount />} />
+              <Route path="/orders" element={<CustomerOrders />} />
 
-            {/* CMS Informational Pages */}
-            <Route path="/about" element={<CmsPage slugOverride="about-us" />} />
-            <Route path="/privacy-policy" element={<CmsPage slugOverride="privacy-policy" />} />
-            <Route path="/terms-conditions" element={<CmsPage slugOverride="terms-conditions" />} />
-            <Route path="/contact" element={<ContactPage />} />
+              {/* CMS Informational Pages */}
+              <Route path="/about" element={<CmsPage slugOverride="about-us" />} />
+              <Route path="/privacy-policy" element={<CmsPage slugOverride="privacy-policy" />} />
+              <Route path="/terms-conditions" element={<CmsPage slugOverride="terms-conditions" />} />
+              <Route path="/contact" element={<ContactPage />} />
 
-            {/* Admin Command Center */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/products" element={<AdminProducts />} />
-            <Route path="/admin/categories" element={<AdminCategories />} />
-            <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-          </Routes>
-        </div>
-
-        {/* Quick-Access Modal */}
-          <AuthModal
-            isOpen={authModalOpen}
-            onClose={() => setAuthModalOpen(false)}
-            initialMode={authMode}
-          />
+              {/* Admin Command Center */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+            </Routes>
+          </div>
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>

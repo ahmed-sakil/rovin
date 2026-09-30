@@ -4,11 +4,7 @@ import { Compass, ShoppingBag, User, ShieldCheck, Package } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
-interface MobileBottomNavProps {
-  onOpenAuth?: () => void;
-}
-
-export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAuth }) => {
+export const MobileBottomNav: React.FC = () => {
   const { itemCount } = useCart();
   const { user, isAuthenticated, isAdmin } = useAuth();
 

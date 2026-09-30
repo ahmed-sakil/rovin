@@ -137,11 +137,11 @@ export const ProductDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-        <StorefrontNavbar onOpenAuth={() => {}} />
+        <StorefrontNavbar />
         <main className="max-w-4xl mx-auto px-6 py-20 text-center flex-1 text-xs font-mono text-machined-muted">
           CALIBRATING PRODUCT TELEMETRY...
         </main>
-        <MobileBottomNav onOpenAuth={() => {}} />
+        <MobileBottomNav />
       </div>
     );
   }
@@ -149,12 +149,12 @@ export const ProductDetail: React.FC = () => {
   if (!product) {
     return (
       <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-        <StorefrontNavbar onOpenAuth={() => {}} />
+        <StorefrontNavbar />
         <main className="max-w-4xl mx-auto px-6 py-20 text-center flex-1">
           <h2 className="font-orbitron font-bold text-xl text-machined-titanium mb-4">PRODUCT NOT LOCATED</h2>
           <Link to="/products" className="nitro-btn text-xs py-2 px-4">Return to Catalog</Link>
         </main>
-        <MobileBottomNav onOpenAuth={() => {}} />
+        <MobileBottomNav />
       </div>
     );
   }
@@ -169,7 +169,7 @@ export const ProductDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-      <StorefrontNavbar onOpenAuth={() => {}} />
+      <StorefrontNavbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
         {/* Breadcrumb */}
@@ -607,7 +607,7 @@ export const ProductDetail: React.FC = () => {
 
       <StorefrontFooter />
 
-      <MobileBottomNav onOpenAuth={() => {}} />
+      <MobileBottomNav />
     </div>
   );
 };

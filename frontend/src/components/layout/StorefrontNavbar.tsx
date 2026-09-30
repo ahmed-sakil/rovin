@@ -17,11 +17,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-interface StorefrontNavbarProps {
-  onOpenAuth?: (mode?: 'login' | 'register') => void;
-}
-
-export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }) => {
+export const StorefrontNavbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
   const [burgerOpen, setBurgerOpen] = useState(false);
@@ -81,7 +77,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
           </NavLink>
           {isAuthenticated && (
             <NavLink
-              to="/account"
+              to="/orders"
               className={({ isActive }) =>
                 isActive ? 'text-nitro-amber font-bold' : 'text-machined-muted hover:text-machined-titanium transition-colors'
               }
@@ -255,14 +251,24 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                 </NavLink>
 
                 {isAuthenticated && (
-                  <NavLink
-                    to="/account"
-                    onClick={() => setBurgerOpen(false)}
-                    className="flex items-center justify-between px-3 py-2.5 rounded text-nitro-amber font-bold hover:bg-carbon-card"
-                  >
-                    <span>My Account</span>
-                    <ChevronRight className="w-4 h-4 text-nitro-amber" />
-                  </NavLink>
+                  <>
+                    <NavLink
+                      to="/orders"
+                      onClick={() => setBurgerOpen(false)}
+                      className="flex items-center justify-between px-3 py-2.5 rounded text-machined-silver hover:bg-carbon-card hover:text-nitro-amber"
+                    >
+                      <span>My Orders</span>
+                      <ChevronRight className="w-4 h-4 text-machined-dim" />
+                    </NavLink>
+                    <NavLink
+                      to="/account"
+                      onClick={() => setBurgerOpen(false)}
+                      className="flex items-center justify-between px-3 py-2.5 rounded text-nitro-amber font-bold hover:bg-carbon-card"
+                    >
+                      <span>My Account</span>
+                      <ChevronRight className="w-4 h-4 text-nitro-amber" />
+                    </NavLink>
+                  </>
                 )}
 
                 <div className="pt-3 mt-3 border-t border-fastener-border text-[11px] font-mono">

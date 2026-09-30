@@ -22,7 +22,7 @@ export const OrderSuccess: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-      <StorefrontNavbar onOpenAuth={() => {}} />
+      <StorefrontNavbar />
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-12 flex-1 w-full text-center">
         <div className="chassis-card p-6 sm:p-10 border-nitro-amber/50">
@@ -80,7 +80,7 @@ export const OrderSuccess: React.FC = () => {
 
       <StorefrontFooter />
 
-      <MobileBottomNav onOpenAuth={() => {}} />
+      <MobileBottomNav />
     </div>
   );
 };

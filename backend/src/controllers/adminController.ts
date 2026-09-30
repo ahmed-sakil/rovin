@@ -80,63 +80,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     }));
 
     // Calculate selected date range for daily report
-    const dateParam = req.query.date as string | undefined;
-    let dayStart: Date;
-    let dayEnd: Date;
-    let selectedDateString: string;
-
-    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-      const [y, m, d] = dateParam.split('-').map(Number);
-      dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
-      dayEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
-      selectedDateString = dateParam;
-    } else {
-      const now = new Date();
-      dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-      dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      selectedDateString = `${now.getFullYear()}-${mm}-${dd}`;
-    }
-
-    const [
-      todayNewUsers,
-      todayOrders,
-      todayCompletedOrders,
-      todayActivityIps,
-      todayRevenueSum,
-    ] = await Promise.all([
-      prisma.user.count({
-        where: { createdAt: { gte: dayStart, lte: dayEnd } },
-      }),
-      prisma.order.count({
-        where: { createdAt: { gte: dayStart, lte: dayEnd } },
-      }),
-      prisma.order.count({
-        where: {
-          updatedAt: { gte: dayStart, lte: dayEnd },
-          orderStatus: 'DELIVERED',
-        },
-      }),
-      prisma.userActivityLog.findMany({
-        where: { createdAt: { gte: dayStart, lte: dayEnd }, ipAddress: { not: null } },
-        select: { ipAddress: true },
-        distinct: ['ipAddress'],
-      }),
-      prisma.order.aggregate({
-        _sum: { totalAmount: true },
-        where: { createdAt: { gte: dayStart, lte: dayEnd }, orderStatus: { not: 'CANCELLED' } },
-      }),
-    ]);
-
-    const dailyReport = {
-      date: selectedDateString,
-      todayNewUsers,
-      todayUniqueVisitors: todayActivityIps.length,
-      todayOrdersCount: todayOrders,
-      todayCompletedOrders,
-      todayRevenue: todayRevenueSum._sum.totalAmount || 0,
-    };
+    const dailyReport = await computeDailyReportMetrics(req.query.date as string | undefined);
 
     // Stock Distribution Data
     const healthyStock = Math.max(0, totalProducts - lowStockProducts - outOfStockProducts);
@@ -510,68 +454,70 @@ export async function getAuditLogs(req: AuthenticatedRequest, res: Response): Pr
   }
 }
 
+export async function computeDailyReportMetrics(dateParam?: string) {
+  let dayStart: Date;
+  let dayEnd: Date;
+  let selectedDateString: string;
+
+  if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+    const [y, m, d] = dateParam.split('-').map(Number);
+    dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
+    dayEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
+    selectedDateString = dateParam;
+  } else {
+    const now = new Date();
+    dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    selectedDateString = `${now.getFullYear()}-${mm}-${dd}`;
+  }
+
+  const [
+    todayNewUsers,
+    todayOrders,
+    todayCompletedOrders,
+    todayActivityIps,
+    todayRevenueSum,
+  ] = await Promise.all([
+    prisma.user.count({
+      where: { createdAt: { gte: dayStart, lte: dayEnd } },
+    }),
+    prisma.order.count({
+      where: { createdAt: { gte: dayStart, lte: dayEnd } },
+    }),
+    prisma.order.count({
+      where: {
+        updatedAt: { gte: dayStart, lte: dayEnd },
+        orderStatus: 'DELIVERED',
+      },
+    }),
+    prisma.userActivityLog.findMany({
+      where: { createdAt: { gte: dayStart, lte: dayEnd }, ipAddress: { not: null } },
+      select: { ipAddress: true },
+      distinct: ['ipAddress'],
+    }),
+    prisma.order.aggregate({
+      _sum: { totalAmount: true },
+      where: { createdAt: { gte: dayStart, lte: dayEnd }, orderStatus: { not: 'CANCELLED' } },
+    }),
+  ]);
+
+  return {
+    date: selectedDateString,
+    todayNewUsers,
+    todayUniqueVisitors: todayActivityIps.length,
+    todayOrdersCount: todayOrders,
+    todayCompletedOrders,
+    todayRevenue: todayRevenueSum._sum.totalAmount || 0,
+  };
+}
+
 export async function getDailyReport(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const dateParam = req.query.date as string | undefined;
-    let dayStart: Date;
-    let dayEnd: Date;
-    let selectedDateString: string;
-
-    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-      const [y, m, d] = dateParam.split('-').map(Number);
-      dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
-      dayEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
-      selectedDateString = dateParam;
-    } else {
-      const now = new Date();
-      dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-      dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      selectedDateString = `${now.getFullYear()}-${mm}-${dd}`;
-    }
-
-    const [
-      newUsers,
-      ordersCount,
-      completedOrders,
-      activityIps,
-      revenueSum,
-    ] = await Promise.all([
-      prisma.user.count({
-        where: { createdAt: { gte: dayStart, lte: dayEnd } },
-      }),
-      prisma.order.count({
-        where: { createdAt: { gte: dayStart, lte: dayEnd } },
-      }),
-      prisma.order.count({
-        where: {
-          updatedAt: { gte: dayStart, lte: dayEnd },
-          orderStatus: 'DELIVERED',
-        },
-      }),
-      prisma.userActivityLog.findMany({
-        where: { createdAt: { gte: dayStart, lte: dayEnd }, ipAddress: { not: null } },
-        select: { ipAddress: true },
-        distinct: ['ipAddress'],
-      }),
-      prisma.order.aggregate({
-        _sum: { totalAmount: true },
-        where: { createdAt: { gte: dayStart, lte: dayEnd }, orderStatus: { not: 'CANCELLED' } },
-      }),
-    ]);
-
-    res.status(200).json({
-      success: true,
-      report: {
-        date: selectedDateString,
-        todayNewUsers: newUsers,
-        todayUniqueVisitors: activityIps.length,
-        todayOrdersCount: ordersCount,
-        todayCompletedOrders: completedOrders,
-        todayRevenue: revenueSum._sum.totalAmount || 0,
-      },
-    });
+    const report = await computeDailyReportMetrics(dateParam);
+    res.status(200).json({ success: true, report });
   } catch (error: any) {
     res.status(500).json({ success: false, message: 'Failed to retrieve daily report' });
   }

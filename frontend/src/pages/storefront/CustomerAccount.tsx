@@ -285,7 +285,7 @@ export const CustomerAccount: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-      <StorefrontNavbar onOpenAuth={() => {}} />
+      <StorefrontNavbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
         {/* Customer Profile Banner (Centralized) */}
@@ -863,7 +863,7 @@ export const CustomerAccount: React.FC = () => {
 
       <StorefrontFooter />
 
-      <MobileBottomNav onOpenAuth={() => {}} />
+      <MobileBottomNav />
     </div>
   );
 };

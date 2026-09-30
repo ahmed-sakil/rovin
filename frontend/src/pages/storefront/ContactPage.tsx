@@ -42,7 +42,7 @@ export const ContactPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-      <StorefrontNavbar onOpenAuth={() => {}} />
+      <StorefrontNavbar />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex-1 w-full">
         <div className="text-center max-w-2xl mx-auto mb-10">
@@ -219,7 +219,7 @@ export const ContactPage: React.FC = () => {
 
       <StorefrontFooter />
 
-      <MobileBottomNav onOpenAuth={() => {}} />
+      <MobileBottomNav />
     </div>
   );
 };
