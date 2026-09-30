@@ -1,0 +1,354 @@
+import { Request, Response } from 'express';
+import { prisma } from '../lib/prisma.js';
+import { z } from 'zod';
+import { BD_PHONE_REGEX } from '../utils/validators.js';
+import { OrderStatus, PaymentMethod } from '@prisma/client';
+
+const CreateOrderSchema = z.object({
+  customerName: z.string().min(2, 'Name is required'),
+  customerPhone: z.string().regex(BD_PHONE_REGEX, 'Valid 11-digit BD mobile number is required'),
+  customerEmail: z.string().email().optional().or(z.literal('')),
+  deliveryAddress: z.string().min(5, 'Full delivery address is required'),
+  district: z.string().min(2, 'District is required'),
+  thana: z.string().min(2, 'Thana/Area is required'),
+  paymentMethod: z.nativeEnum(PaymentMethod).default(PaymentMethod.COD),
+  couponCode: z.string().optional(),
+  items: z.array(
+    z.object({
+      productId: z.string().min(1),
+      quantity: z.number().int().min(1),
+      chosenColor: z.string().optional(),
+      chosenSize: z.string().optional(),
+    })
+  ).min(1, 'Order must contain at least 1 item'),
+});
+
+export async function createOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const parsed = CreateOrderSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, errors: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    const {
+      customerName,
+      customerPhone,
+      customerEmail,
+      deliveryAddress,
+      district,
+      thana,
+      paymentMethod,
+      couponCode,
+      items,
+    } = parsed.data;
+
+    // 1. Fetch System Settings for delivery rates
+    const settings = await prisma.systemSettings.upsert({
+      where: { id: 'default' },
+      update: {},
+      create: {
+        id: 'default',
+        deliveryChargeInsideDhaka: 70,
+        deliveryChargeOutsideDhaka: 130,
+        freeShippingThreshold: 5000,
+      },
+    });
+
+    // 2. Fetch and Validate all products
+    const productIds = items.map((i) => i.productId);
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+    });
+
+    if (dbProducts.length !== items.length) {
+      res.status(400).json({ success: false, message: 'One or more items in cart could not be located.' });
+      return;
+    }
+
+    // Check stock availability
+    for (const item of items) {
+      const prod = dbProducts.find((p) => p.id === item.productId);
+      if (!prod || prod.stockQuantity < item.quantity) {
+        res.status(400).json({
+          success: false,
+          message: `Stock insufficient for '${prod?.title || 'Selected item'}'. Available: ${prod?.stockQuantity || 0} units.`,
+        });
+        return;
+      }
+    }
+
+    // Calculate subtotal
+    let subtotal = 0;
+    const orderItemsData = items.map((item) => {
+      const prod = dbProducts.find((p) => p.id === item.productId)!;
+      const unitPrice = prod.discountPriceBDT || prod.priceBDT;
+      const totalPrice = unitPrice * item.quantity;
+      subtotal += totalPrice;
+
+      return {
+        productId: prod.id,
+        quantity: item.quantity,
+        unitPrice,
+        totalPrice,
+        chosenColor: item.chosenColor,
+        chosenSize: item.chosenSize,
+      };
+    });
+
+    // Calculate dynamic delivery fee
+    const isDhaka = district.trim().toLowerCase() === 'dhaka';
+    let deliveryCharge = isDhaka
+      ? settings.deliveryChargeInsideDhaka
+      : settings.deliveryChargeOutsideDhaka;
+
+    // Free shipping threshold check
+    if (settings.freeShippingThreshold && subtotal >= settings.freeShippingThreshold) {
+      deliveryCharge = 0;
+    }
+
+    // Discount & Coupon check
+    let discountAmount = 0;
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode.trim().toUpperCase() },
+      });
+
+      if (coupon && coupon.isActive) {
+        if (!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) {
+          if (subtotal >= coupon.minOrderAmount) {
+            if (coupon.discountType === 'PERCENTAGE') {
+              discountAmount = (subtotal * coupon.discountValue) / 100;
+              if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+                discountAmount = coupon.maxDiscount;
+              }
+            } else {
+              discountAmount = coupon.discountValue;
+            }
+          }
+        }
+      }
+    }
+
+    const totalAmount = Math.max(0, subtotal + deliveryCharge - discountAmount);
+
+    // Generate Order Number: ROV-YYYYMM-XXXX
+    const dateStr = new Date().toISOString().slice(0, 7).replace('-', '');
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const orderNumber = `ROV-${dateStr}-${randomSuffix}`;
+
+    // Atomic transaction: Create Order + OrderItems + Decrement Stock
+    const newOrder = await prisma.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: {
+          orderNumber,
+          customerName,
+          customerPhone,
+          customerEmail: customerEmail || null,
+          deliveryAddress,
+          district,
+          thana,
+          subtotal,
+          deliveryCharge,
+          discountAmount,
+          totalAmount,
+          couponCode: couponCode || null,
+          paymentMethod,
+          paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PENDING_MFS',
+          orderStatus: 'PENDING',
+          orderItems: {
+            create: orderItemsData,
+          },
+        },
+        include: {
+          orderItems: { include: { product: true } },
+        },
+      });
+
+      // Atomically decrement stock
+      for (const item of items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stockQuantity: { decrement: item.quantity } },
+        });
+      }
+
+      // If coupon used, increment count
+      if (couponCode && discountAmount > 0) {
+        await tx.coupon.update({
+          where: { code: couponCode.trim().toUpperCase() },
+          data: { usageCount: { increment: 1 } },
+        });
+      }
+
+      return created;
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Order #${newOrder.orderNumber} placed successfully!`,
+      order: newOrder,
+    });
+  } catch (error: any) {
+    console.error('[createOrder Error]:', error);
+    res.status(500).json({ success: false, message: 'Failed to process order placement.' });
+  }
+}
+
+export async function getOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const { orderNumberOrId } = req.params;
+    const target = String(orderNumberOrId);
+
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id: target }, { orderNumber: target }],
+      },
+      include: {
+        orderItems: { include: { product: true } },
+        consignments: true,
+      },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    res.status(200).json({ success: true, order });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to retrieve order' });
+  }
+}
+
+export async function getAllOrders(req: Request, res: Response): Promise<void> {
+  try {
+    const { status, search } = req.query;
+    const where: any = {};
+
+    if (status && status !== 'ALL') {
+      where.orderStatus = status;
+    }
+
+    if (search) {
+      const q = String(search).trim();
+      where.OR = [
+        { orderNumber: { contains: q, mode: 'insensitive' } },
+        { customerName: { contains: q, mode: 'insensitive' } },
+        { customerPhone: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        orderItems: { include: { product: { select: { title: true, images: true, sku: true } } } },
+        consignments: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.status(200).json({ success: true, orders });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+}
+
+export async function updateOrderStatus(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { orderStatus } = req.body;
+
+    const existing = await prisma.order.findUnique({
+      where: { id: String(id) },
+      include: { orderItems: true },
+    });
+
+    if (!existing) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    // If transitioning to CANCELLED from an active state, restore inventory stock!
+    if (orderStatus === 'CANCELLED' && existing.orderStatus !== 'CANCELLED') {
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: String(id) },
+          data: { orderStatus: 'CANCELLED' },
+        });
+
+        for (const item of existing.orderItems) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockQuantity: { increment: item.quantity } },
+          });
+        }
+      });
+
+      res.status(200).json({ success: true, message: 'Order cancelled and stock restored to inventory.' });
+      return;
+    }
+
+    const updated = await prisma.order.update({
+      where: { id: String(id) },
+      data: { orderStatus },
+    });
+
+    res.status(200).json({ success: true, message: `Status updated to ${orderStatus}`, order: updated });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to update order status' });
+  }
+}
+
+export async function validateCoupon(req: Request, res: Response): Promise<void> {
+  try {
+    const { code, subtotal } = req.body;
+    if (!code) {
+      res.status(400).json({ success: false, message: 'Coupon code required' });
+      return;
+    }
+
+    const coupon = await prisma.coupon.findUnique({
+      where: { code: String(code).trim().toUpperCase() },
+    });
+
+    if (!coupon || !coupon.isActive) {
+      res.status(404).json({ success: false, message: 'Invalid or inactive promotional code.' });
+      return;
+    }
+
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+      res.status(400).json({ success: false, message: 'This coupon code has expired.' });
+      return;
+    }
+
+    const sub = Number(subtotal) || 0;
+    if (sub < coupon.minOrderAmount) {
+      res.status(400).json({
+        success: false,
+        message: `Minimum order amount of ৳${coupon.minOrderAmount} required for this coupon.`,
+      });
+      return;
+    }
+
+    let discount = 0;
+    if (coupon.discountType === 'PERCENTAGE') {
+      discount = (sub * coupon.discountValue) / 100;
+      if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+        discount = coupon.maxDiscount;
+      }
+    } else {
+      discount = coupon.discountValue;
+    }
+
+    res.status(200).json({
+      success: true,
+      code: coupon.code,
+      discountAmount: discount,
+      discountType: coupon.discountType,
+      message: `Coupon '${coupon.code}' verified: ৳${discount} discount applied.`,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to validate coupon' });
+  }
+}

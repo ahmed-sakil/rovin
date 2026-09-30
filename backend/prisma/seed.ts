@@ -264,3 +264,59 @@ async function seedProducts() {
 seedProducts()
   .catch((e) => console.error(e))
   .finally(() => prisma.$disconnect());
+
+async function seedCms() {
+  await prisma.siteContent.upsert({
+    where: { slug: 'privacy-policy' },
+    update: {},
+    create: {
+      slug: 'privacy-policy',
+      title: 'ROVIN Privacy Policy & Data Calibration',
+      content: `### 1. Information We Collect
+ROVIN collects your name, delivery address, 11-digit Bangladesh phone number, and optional email when creating an account or placing an order. This information is utilized exclusively for order fulfillment, courier parcel dispatch (via Steadfast & Pathao), and security verification.
+
+### 2. Security of Customer Records
+Your password is never stored in plain text; all credentials are encrypted using industry-standard bcrypt hashing. Multi-factor verification codes (6-digit OTPs) expire automatically within 5 minutes.
+
+### 3. Third-Party Courier Data Sharing
+To facilitate Cash on Delivery (COD) and nationwide shipping across all 64 districts in Bangladesh, your name, contact phone number, and shipping address are securely transmitted to authorized courier gateways (Steadfast Courier and Pathao Logistics).
+
+### 4. Cookies & Session Storage
+We utilize local session tokens solely for authenticating your active crew session and preserving your cart configuration.`,
+    },
+  });
+
+  await prisma.siteContent.upsert({
+    where: { slug: 'about-us' },
+    update: {},
+    create: {
+      slug: 'about-us',
+      title: 'About ROVIN — Built for Speed, Torque & Precision',
+      content: `### Engineered for "The Boys" Vibe & Mechanical Precision
+ROVIN was forged for hobbyists, collectors, and builders who appreciate raw mechanical engineering, brushless torque, and tactical dark-aesthetic desk tech.
+
+We eliminate childish plastic toys and loud gradient clutter, instead delivering chiseled, surgical, and durable hardware. From precision gyro-assisted 1:16 rear-wheel-drive drift buggies to metal-geared portal axle trail crawlers and CNC machined aluminum engine display sculptures, every item in the ROVIN hangar is built to perform.
+
+### Direct Sourcing & Bangladesh Nationwide Delivery
+We carefully test every single batch before stocking. Our automated courier network delivers directly to your doorstep anywhere in Bangladesh, supported by reliable Cash on Delivery (COD) and direct MFS payments.`,
+    },
+  });
+
+  await prisma.siteContent.upsert({
+    where: { slug: 'terms-conditions' },
+    update: {},
+    create: {
+      slug: 'terms-conditions',
+      title: 'ROVIN Terms of Service & Warranty Calibration',
+      content: `### 1. Order Verification & Delivery
+Orders placed through our 1-page checkout are processed and verified within 24 hours. Nationwide delivery inside Dhaka takes 24–48 hours, and outside Dhaka 48–72 hours via Steadfast or Pathao couriers.
+
+### 2. Unboxing & Inspection Protocol
+Customers are advised to inspect the parcel packaging upon delivery. Hobby electronics and RC models carry a 7-day manufacturer warranty against factory defects. Physical damage caused by improper operation, crashes, or unauthorized modifications is excluded.`,
+    },
+  });
+}
+
+seedCms()
+  .catch((e) => console.error(e))
+  .finally(() => prisma.$disconnect());

@@ -301,3 +301,35 @@ model Coupon {
 
   @@index([code])
 }
+
+// -------------------------------------------------------------
+// CMS CONTENT & CONTACT INQUIRIES
+// -------------------------------------------------------------
+model SiteContent {
+  id        String   @id @default(uuid())
+  slug      String   @unique // privacy-policy, terms-conditions, about-us
+  title     String
+  content   String   // Markdown or rich text
+  updatedAt DateTime @updatedAt
+}
+
+enum ContactPurpose {
+  ORDER_PROBLEM
+  PRODUCT_INQUIRY
+  WHOLESALE_BUSINESS
+  CUSTOM_BUILD
+  OTHER
+}
+
+model ContactMessage {
+  id        String         @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  purpose   ContactPurpose @default(PRODUCT_INQUIRY)
+  message   String
+  status    String         @default("UNREAD") // UNREAD, READ, REPLIED
+  createdAt DateTime       @default(now())
+
+  @@index([status])
+}

@@ -7,6 +7,8 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import cmsRoutes from './routes/cmsRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 
 dotenv.config();
 
@@ -41,6 +43,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/cms', cmsRoutes);
+app.use('/api/orders', orderRoutes);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {

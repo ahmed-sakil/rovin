@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { X, Lock, Mail, Phone, User, KeyRound, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Lock, Mail, Phone, User, KeyRound, Sparkles, AlertCircle, CheckSquare, Square } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
   const [phone, setPhone] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
   const [otp, setOtp] = useState('');
+  const [agreePolicy, setAgreePolicy] = useState(false);
 
   if (!isOpen) return null;
 
@@ -35,6 +38,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
 
   const handleSendRegisterOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreePolicy) {
+      toast.error('Policy Agreement Required', {
+        description: 'You must agree to the ROVIN Terms & Privacy Policy to register.',
+      });
+      return;
+    }
     setLoading(true);
     const sent = await sendRegisterOtp(email, phone);
     setLoading(false);
@@ -57,10 +66,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pitch-obsidian/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-carbon-card border border-fastener-gunmetal rounded-xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pitch-obsidian/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md bg-carbon-card border border-fastener-gunmetal rounded-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
         {/* Header telemetry ribbon */}
-        <div className="bg-carbon-slate px-6 py-4 border-b border-fastener-border flex items-center justify-between">
+        <div className="bg-carbon-slate px-6 py-4 border-b border-fastener-border flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber shadow-nitro-sm"></span>
             <span className="font-orbitron font-bold text-sm tracking-wider text-machined-titanium uppercase">
@@ -232,10 +241,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                     </div>
                   </div>
 
+                  {/* Mandatory Privacy Policy & Terms Checkbox */}
+                  <div className="pt-2">
+                    <label className="flex items-start gap-2.5 cursor-pointer text-xs font-mono text-machined-muted">
+                      <input
+                        type="checkbox"
+                        checked={agreePolicy}
+                        onChange={(e) => setAgreePolicy(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded bg-carbon-slate border-fastener-border text-nitro-amber focus:ring-0 cursor-pointer"
+                      />
+                      <span>
+                        I agree to the{' '}
+                        <Link
+                          to="/terms-conditions"
+                          target="_blank"
+                          className="text-nitro-amber underline hover:text-nitro-orange"
+                        >
+                          Terms of Service
+                        </Link>{' '}
+                        and{' '}
+                        <Link
+                          to="/privacy-policy"
+                          target="_blank"
+                          className="text-nitro-amber underline hover:text-nitro-orange"
+                        >
+                          Privacy Policy
+                        </Link>
+                        .
+                      </span>
+                    </label>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full nitro-btn mt-3 py-2.5 text-xs"
+                    disabled={loading || !agreePolicy}
+                    className="w-full nitro-btn mt-2 py-2.5 text-xs disabled:opacity-40"
                   >
                     {loading ? 'DISPATCHING CODE...' : 'TRANSMIT 6-DIGIT VERIFICATION CODE'}
                   </button>
