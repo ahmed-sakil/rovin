@@ -230,7 +230,10 @@ export const AdminProducts: React.FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Operation failed');
+      if (!res.ok) {
+        const errorDesc = data.message || (data.errors ? JSON.stringify(data.errors) : 'Operation failed');
+        throw new Error(errorDesc);
+      }
 
       toast.success(editingProduct ? 'Product Updated' : 'Product Added to Stock', {
         description: data.message,

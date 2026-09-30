@@ -4,19 +4,19 @@ import { z } from 'zod';
 
 const ProductSchema = z.object({
   title: z.string().min(2, 'Title is required'),
-  slug: z.string().min(2, 'Slug is required'),
+  slug: z.string().min(1, 'Slug is required').optional(),
   sku: z.string().min(2, 'SKU is required'),
-  description: z.string().min(5, 'Description is required'),
+  description: z.string().min(1, 'Description is required'),
   categoryId: z.string().min(1, 'Category is required'),
   subcategoryId: z.string().optional().nullable(),
-  priceBDT: z.number().positive('Price must be greater than 0'),
-  costPriceBDT: z.number().optional().nullable(),
-  discountPriceBDT: z.number().optional().nullable(),
-  stockQuantity: z.number().int().min(0, 'Stock cannot be negative').default(0),
-  lowStockThreshold: z.number().int().min(0).default(5),
+  priceBDT: z.coerce.number().positive('Price must be greater than 0'),
+  costPriceBDT: z.coerce.number().optional().nullable(),
+  discountPriceBDT: z.coerce.number().optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0, 'Stock cannot be negative').default(0),
+  lowStockThreshold: z.coerce.number().int().min(0).default(5),
   availableColors: z.any().optional(),     // [{ name, hex }]
   availableSizes: z.any().optional(),      // ["1:16", "1:12"]
-  weightGrams: z.number().optional().nullable(),
+  weightGrams: z.coerce.number().optional().nullable(),
   packageIncludes: z.any().optional(),     // ["1x RC Car", ...]
   specs: z.any().optional(),               // { scale, motor, battery, speed }
   images: z.array(z.string()).default([]),
@@ -154,13 +154,21 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
   try {
     const parsed = ProductSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ success: false, errors: parsed.error.flatten().fieldErrors });
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstErrorMessage = Object.entries(fieldErrors)
+        .map(([field, msgs]) => `${field}: ${(msgs || []).join(', ')}`)
+        .join('; ');
+
+      res.status(400).json({
+        success: false,
+        message: firstErrorMessage || 'Validation failed for product submission.',
+        errors: fieldErrors,
+      });
       return;
     }
 
     const {
       title,
-      slug,
       sku,
       description,
       categoryId,
@@ -180,6 +188,10 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       featured,
       isSpecial,
     } = parsed.data;
+
+    const slug = (parsed.data.slug && parsed.data.slug.trim())
+      ? parsed.data.slug.trim()
+      : `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString().slice(-4)}`;
 
     // Check duplicate SKU or Slug
     const existing = await prisma.product.findFirst({
