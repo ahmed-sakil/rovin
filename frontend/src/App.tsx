@@ -1,38 +1,25 @@
 import React, { useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthModal } from './components/auth/AuthModal';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminProducts } from './pages/admin/AdminProducts';
+import { AdminCategories } from './pages/admin/AdminCategories';
+import { AdminOrders } from './pages/admin/AdminOrders';
+import { AdminSettings } from './pages/admin/AdminSettings';
+import { usePageTitle } from './hooks/usePageTitle';
 import { toast } from 'sonner';
-import { ShieldCheck, Zap, Truck, Layers, Terminal, User, LogOut, CheckCircle, Flame } from 'lucide-react';
+import { ShieldCheck, Zap, Truck, Layers, Terminal, User, LogOut, ArrowRight, Boxes, Sliders, ExternalLink } from 'lucide-react';
 
-function PlatformContent() {
+function StorefrontHome() {
+  usePageTitle('Precision RC & High-Torque Gear', 'Bangladesh D2C Storefront');
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [apiStatus, setApiStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const testApiHealth = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/health');
-      const data = await res.json();
-      setApiStatus(data.status);
-      toast.success('Core API Telemetry Online', {
-        description: `Service: ${data.service} • Status: ${data.status}`
-      });
-    } catch {
-      setApiStatus('OFFLINE');
-      toast.error('API Connection Offline', {
-        description: 'Ensure backend server is running on port 5050'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between">
-      {/* Top Telemetry Header */}
+      {/* Top Header */}
       <header className="border-b border-fastener-border bg-carbon-slate/90 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded bg-carbon-card border border-nitro-amber/50 flex items-center justify-center text-nitro-amber font-orbitron font-black text-2xl shadow-nitro-sm">
@@ -43,33 +30,38 @@ function PlatformContent() {
               ROVIN
             </span>
             <span className="text-[10px] font-mono tracking-widest block text-nitro-amber mt-1">
-              PRECISION RC &bull; TECH NOVELTIES &bull; DECOR
+              PRECISION RC • TECH NOVELTIES • DECOR
             </span>
           </div>
         </div>
 
-        {/* User Status / Auth Controls */}
+        {/* User Navigation / Admin Link */}
         <div className="flex items-center gap-3">
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-3 bg-carbon-card border border-fastener-gunmetal rounded-lg p-1.5 pr-3">
-              <img
-                src={user.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
-                alt={user.name}
-                className="w-8 h-8 rounded-full border border-nitro-amber/60 bg-carbon-slate"
-              />
-              <div className="text-left hidden sm:block">
-                <p className="text-xs font-bold text-machined-titanium leading-tight">{user.name}</p>
-                <span className="inline-block text-[10px] font-mono text-nitro-amber tracking-wider">
-                  [{user.role}]
-                </span>
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="nitro-btn text-xs py-2 px-3.5 flex items-center gap-1.5 shadow-nitro-sm"
+                >
+                  <Boxes className="w-3.5 h-3.5" />
+                  Admin Panel
+                </Link>
+              )}
+              <div className="flex items-center gap-2 bg-carbon-card border border-fastener-gunmetal rounded-lg p-1.5 pr-3">
+                <img
+                  src={user.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full border border-nitro-amber/60 bg-carbon-slate object-cover"
+                />
+                <div className="text-left hidden sm:block">
+                  <p className="text-xs font-bold text-machined-titanium leading-tight">{user.name}</p>
+                  <span className="text-[10px] font-mono text-nitro-amber">[{user.role}]</span>
+                </div>
+                <button onClick={logout} title="Sign Out" className="text-machined-dim hover:text-red-400 p-1 ml-1">
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={logout}
-                title="Logout"
-                className="text-machined-dim hover:text-red-400 p-1.5 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -90,99 +82,95 @@ function PlatformContent() {
         </div>
       </header>
 
-      {/* Main Showcase Hero */}
-      <main className="max-w-6xl mx-auto px-6 py-10 flex-1 flex flex-col justify-center">
+      {/* Hero Showcase Area */}
+      <main className="max-w-6xl mx-auto px-6 py-12 flex-1 flex flex-col justify-center">
         <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 telemetry-tag mb-4 border-nitro-amber/40 text-nitro-amber">
             <Zap className="w-3.5 h-3.5 animate-pulse" />
-            PHASE 2 &bull; POSTGRESQL + PRISMA 6 + BCRYPT + 6-DIGIT OTP ACTIVE
+            PHASE 3 ACTIVE &bull; ADMIN PANEL &bull; INSTANT METADATA FILE UPLOAD &bull; DATA VIZ
           </div>
           <h1 className="font-orbitron font-black text-4xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight mb-4">
-            CHISELED <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">HIGH-TORQUE</span> COMMERCE
+            PRECISION ENGINEERING <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">MEETS COMMERCE</span>
           </h1>
           <p className="text-machined-muted text-base sm:text-lg max-w-2xl mx-auto font-normal">
-            PostgreSQL database synchronized on port 5432. Dual authentication system featuring 6-digit OTP verification, bcrypt password hashing, and 6 tactical operator avatars.
+            Admin command center deployed with dynamic category taxonomies, instant media metadata extraction, stock velocity charts, and user-friendly inventory management.
           </p>
         </div>
 
-        {/* Tactical Telemetry Status Matrix */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-          <div className="chassis-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="telemetry-tag text-nitro-amber border-nitro-amber/30">DATABASE: POSTGRESQL 16</span>
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
-            </div>
-            <h3 className="font-orbitron text-sm font-bold text-machined-titanium mb-1">
-              Prisma 6.x Synchronized
-            </h3>
-            <p className="text-xs text-machined-muted leading-relaxed">
-              13 relational models created in <code className="text-nitro-amber font-mono">rovin_db</code>. Includes Users, Saved Addresses, OTPs, Activity Logs, and Taxonomies.
-            </p>
-          </div>
-
-          <div className="chassis-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="telemetry-tag text-nitro-amber border-nitro-amber/30">SECURITY: BCRYPT & OTP</span>
-              <ShieldCheck className="w-4 h-4 text-nitro-amber" />
-            </div>
-            <h3 className="font-orbitron text-sm font-bold text-machined-titanium mb-1">
-              6-Digit Verification Gateway
-            </h3>
-            <p className="text-xs text-machined-muted leading-relaxed">
-              Pluggable OTP architecture (Console &bull; Free SMTP Email &bull; Ready for BD SMS). Rate-limited to 60s cooldown and 5-minute expiry.
-            </p>
-          </div>
-
-          <div className="chassis-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="telemetry-tag text-nitro-amber border-nitro-amber/30">IDENTITY: AVATARS</span>
-              <User className="w-4 h-4 text-machined-silver" />
-            </div>
-            <h3 className="font-orbitron text-sm font-bold text-machined-titanium mb-1">
-              6 Tactical Vector Avatars
-            </h3>
-            <p className="text-xs text-machined-muted leading-relaxed">
-              Assigned automatically by gender during signup (Drift Pilots & Tech Navigators). Replaceable via Cloudinary profile uploads.
-            </p>
-          </div>
-        </div>
-
-        {/* Interactive Controls */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
-            className="nitro-btn flex items-center gap-2 py-3 px-6"
+        {/* Quick Access Portals */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <Link
+            to="/admin"
+            className="chassis-card p-5 group flex flex-col justify-between hover:border-nitro-amber/60"
           >
-            <User className="w-4 h-4" />
-            {isAuthenticated ? 'Manage Crew Session' : 'Test Login (Admin or Customer)'}
-          </button>
+            <div>
+              <div className="w-10 h-10 rounded bg-carbon-slate border border-nitro-amber/40 flex items-center justify-center text-nitro-amber mb-3 group-hover:scale-105 transition-transform">
+                <Terminal className="w-5 h-5" />
+              </div>
+              <h3 className="font-orbitron font-bold text-sm text-machined-titanium group-hover:text-nitro-amber transition-colors">
+                Command Dashboard
+              </h3>
+              <p className="text-xs text-machined-muted mt-1 font-mono">
+                Interactive revenue trend charts, inventory health meters, and courier pipeline.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-mono text-nitro-amber mt-4">
+              <span>Open Dashboard</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-          <button
-            onClick={testApiHealth}
-            disabled={loading}
-            className="outline-btn flex items-center gap-2 py-3 px-6"
+          <Link
+            to="/admin/products"
+            className="chassis-card p-5 group flex flex-col justify-between hover:border-nitro-amber/60"
           >
-            <Terminal className="w-4 h-4 text-nitro-amber" />
-            {loading ? 'Pinging Telemetry...' : 'Ping Backend API (Port 5050)'}
-          </button>
-        </div>
+            <div>
+              <div className="w-10 h-10 rounded bg-carbon-slate border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-3 group-hover:scale-105 transition-transform">
+                <Boxes className="w-5 h-5" />
+              </div>
+              <h3 className="font-orbitron font-bold text-sm text-machined-titanium group-hover:text-cyan-400 transition-colors">
+                Products & Stock Ledger
+              </h3>
+              <p className="text-xs text-machined-muted mt-1 font-mono">
+                Add SKUs with colors, sizes, specs, and upload media with instant metadata telemetry.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-mono text-cyan-400 mt-4">
+              <span>Manage Products</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-        {apiStatus && (
-          <div className="mt-6 text-center">
-            <span className="telemetry-tag border-emerald-500/50 text-emerald-400">
-              API TELEMETRY STATUS: {apiStatus} (POSTGRESQL 16 SYNCED)
-            </span>
-          </div>
-        )}
+          <Link
+            to="/admin/categories"
+            className="chassis-card p-5 group flex flex-col justify-between hover:border-nitro-amber/60"
+          >
+            <div>
+              <div className="w-10 h-10 rounded bg-carbon-slate border border-purple-400/40 flex items-center justify-center text-purple-400 mb-3 group-hover:scale-105 transition-transform">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h3 className="font-orbitron font-bold text-sm text-machined-titanium group-hover:text-purple-400 transition-colors">
+                Dynamic Taxonomies
+              </h3>
+              <p className="text-xs text-machined-muted mt-1 font-mono">
+                Create and organize non-hardcoded categories and child subcategories.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-mono text-purple-400 mt-4">
+              <span>Configure Categories</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+        </div>
       </main>
 
       {/* Technical Footer */}
       <footer className="border-t border-fastener-border py-4 px-6 text-center text-xs text-machined-dim flex flex-col sm:flex-row items-center justify-between gap-2 bg-pitch-deep">
         <span className="font-mono">ROVIN TACTICAL PLATFORM &bull; BANGLADESH E-COMMERCE CORE</span>
-        <span className="font-mono text-nitro-amber/80">PHASE 2 DEPLOYED &bull; POSTGRESQL 16</span>
+        <span className="font-mono text-nitro-amber/80">ADMIN COMMAND CENTER V1.0</span>
       </footer>
 
-      {/* Authentication Modal */}
+      {/* Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -195,7 +183,14 @@ function PlatformContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <PlatformContent />
+      <Routes>
+        <Route path="/" element={<StorefrontHome />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
+        <Route path="/admin/categories" element={<AdminCategories />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
+      </Routes>
     </AuthProvider>
   );
 }
