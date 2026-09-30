@@ -44,11 +44,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className = '
   return (
     <div
       onClick={handleCardClick}
-      className={`chassis-card flex flex-col justify-between overflow-hidden group cursor-pointer hover:border-nitro-amber/60 hover:shadow-nitro-sm transition-all select-none min-w-[270px] ${className}`}
+      className={`chassis-card flex flex-col justify-between overflow-hidden group cursor-pointer hover:border-nitro-amber/60 hover:shadow-nitro-sm transition-all select-none w-full min-w-0 sm:min-w-[400px] ${className}`}
     >
       <div>
         {/* Product Visual Surface */}
-        <div className="relative aspect-video sm:aspect-square bg-carbon-slate overflow-hidden border-b border-fastener-border">
+        <div className="relative aspect-[16/10] bg-carbon-slate overflow-hidden border-b border-fastener-border">
           <img
             src={product.images[0] || '/brand/rovin-icon.svg'}
             alt={product.title}

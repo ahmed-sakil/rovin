@@ -261,7 +261,7 @@ export const ProductCatalog: React.FC = () => {
 
         {/* Products Grid */}
         {loading ? (
-          <div className="chassis-card p-16 text-center text-machined-dim font-mono text-sm">
+          <div className="chassis-card min-h-[380px] flex items-center justify-center p-16 text-center text-machined-dim font-mono text-sm">
             Scanning Hangar Inventory Telemetry...
           </div>
         ) : products.length === 0 ? (
@@ -281,7 +281,7 @@ export const ProductCatalog: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

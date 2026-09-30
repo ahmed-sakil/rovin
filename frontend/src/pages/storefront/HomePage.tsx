@@ -117,7 +117,7 @@ export const HomePage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
               {specialProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -143,7 +143,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="chassis-card p-12 text-center text-machined-dim font-mono text-sm">
+            <div className="chassis-card min-h-[320px] flex items-center justify-center p-12 text-center text-machined-dim font-mono text-sm">
               Loading products...
             </div>
           ) : newArrivals.length === 0 ? (
@@ -151,7 +151,7 @@ export const HomePage: React.FC = () => {
               No products found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
               {newArrivals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -159,7 +159,7 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* SECTION 2: MOST SELLING */}
+        {/* SECTION 3: MOST SELLING */}
         <section id="most-selling" className="border-t border-fastener-border bg-carbon-slate/30 py-12 sm:py-16 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-end justify-between mb-8 pb-4 border-b border-fastener-border">
@@ -178,7 +178,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             {loading ? (
-              <div className="chassis-card p-12 text-center text-machined-dim font-mono text-sm">
+              <div className="chassis-card min-h-[320px] flex items-center justify-center p-12 text-center text-machined-dim font-mono text-sm">
                 Loading products...
               </div>
             ) : bestsellers.length === 0 ? (
@@ -186,7 +186,7 @@ export const HomePage: React.FC = () => {
                 No orders registered yet.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
                 {bestsellers.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

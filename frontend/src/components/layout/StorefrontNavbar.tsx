@@ -85,8 +85,10 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
 
         {/* Right Action Icons: Theme, Cart, Profile / Admin */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Theme Toggle (Dark / Light) */}
-          <ThemeToggle />
+          {/* Theme Toggle (Dark / Light) - Desktop Only */}
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
 
           {/* Cart Button with Counter */}
           <Link
@@ -113,9 +115,9 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
             </Link>
           )}
 
-          {/* User Profile / Access */}
+          {/* User Profile / Access - Desktop Only (Mobile accessed via Burger Menu) */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <Link
                 to="/account"
                 className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-lg border border-fastener-border bg-carbon-card hover:border-nitro-amber transition-all"
@@ -126,14 +128,14 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                   alt={user.name}
                   className="w-7 h-7 rounded-full border border-nitro-amber/70 object-cover"
                 />
-                <span className="hidden sm:inline font-orbitron text-xs font-bold text-machined-titanium max-w-[90px] truncate">
+                <span className="font-orbitron text-xs font-bold text-machined-titanium max-w-[90px] truncate">
                   {user.name.split(' ')[0]}
                 </span>
               </Link>
               <button
                 onClick={logout}
                 title="Logout"
-                className="text-machined-dim hover:text-red-400 p-1.5 hidden sm:block transition-colors"
+                className="text-machined-dim hover:text-red-400 p-1.5 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -157,14 +159,54 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-4 border-b border-fastener-border mb-4">
                 <BrandLogo variant="horizontal" size="sm" />
-                <button onClick={() => setBurgerOpen(false)} className="text-machined-dim p-1">
+                <button onClick={() => setBurgerOpen(false)} className="text-machined-dim p-1 hover:text-nitro-amber">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Theme Toggle within Drawer */}
-              <div className="mb-4">
-                <ThemeToggle showLabel className="w-full justify-between px-3" />
+              {/* User Identity / Access Card at Top of Drawer */}
+              <div className="mb-4 pb-4 border-b border-fastener-border">
+                {isAuthenticated && user ? (
+                  <div className="p-3 rounded-lg border border-fastener-border bg-carbon-card">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <img
+                        src={user.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
+                        alt={user.name}
+                        className="w-10 h-10 rounded-full border border-nitro-amber object-cover"
+                      />
+                      <div className="overflow-hidden flex-1">
+                        <p className="font-orbitron font-bold text-xs text-machined-titanium truncate">{user.name}</p>
+                        <span className="text-[10px] font-mono text-nitro-amber block uppercase tracking-wider">
+                          [{user.role}]
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-fastener-border">
+                      <Link
+                        to="/account"
+                        onClick={() => setBurgerOpen(false)}
+                        className="outline-btn text-[10px] py-1.5 px-2 text-center"
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={() => { logout(); setBurgerOpen(false); }}
+                        className="p-1.5 rounded text-[10px] font-mono text-red-400 bg-red-950/20 border border-red-500/30 hover:bg-red-900/30 text-center"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setBurgerOpen(false)}
+                    className="w-full nitro-btn text-xs py-2.5 text-center flex items-center justify-center gap-2 shadow-nitro-sm"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Login / Register</span>
+                  </Link>
+                )}
               </div>
 
               {/* Navigation Links */}
@@ -241,42 +283,12 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
               </nav>
             </div>
 
-            {/* Bottom: Auth Actions in Drawer */}
-            <div className="pt-4 border-t border-fastener-border">
-              {isAuthenticated && user ? (
-                <div className="flex items-center justify-between">
-                  <Link
-                    to="/account"
-                    onClick={() => setBurgerOpen(false)}
-                    className="flex items-center gap-2 overflow-hidden flex-1"
-                  >
-                    <img
-                      src={user.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full border border-nitro-amber"
-                    />
-                    <div className="text-left truncate">
-                      <p className="text-xs font-bold text-machined-titanium truncate">{user.name}</p>
-                      <span className="text-[10px] font-mono text-nitro-amber">[{user.role}]</span>
-                    </div>
-                  </Link>
-                  <button
-                    onClick={() => { logout(); setBurgerOpen(false); }}
-                    className="text-red-400 p-1"
-                    title="Logout"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setBurgerOpen(false)}
-                  className="w-full nitro-btn text-xs py-2.5 text-center block shadow-nitro-sm"
-                >
-                  Login
-                </Link>
-              )}
+            {/* Bottom: Theme Switcher & Spec */}
+            <div className="pt-4 border-t border-fastener-border space-y-3">
+              <ThemeToggle showLabel className="w-full justify-between px-3" />
+              <p className="text-[10px] font-mono text-machined-dim text-center uppercase tracking-widest">
+                ROVIN &bull; PRECISION TELEMETRY
+              </p>
             </div>
           </div>
         </div>

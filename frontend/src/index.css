@@ -55,11 +55,14 @@
   html {
     scrollbar-gutter: stable;
     overflow-y: scroll;
+    height: 100%;
   }
 
   body {
     @apply bg-pitch-obsidian text-machined-titanium transition-colors duration-200;
     overflow-x: hidden;
+    overflow-y: scroll;
+    min-height: 100vh;
   }
 }
 
@@ -118,18 +121,16 @@
   @apply inline-flex items-center justify-center font-orbitron font-semibold tracking-wider uppercase text-xs px-5 py-2.5 rounded border border-fastener-border bg-carbon-elevated text-machined-silver hover:border-machined-titanium hover:bg-carbon-hover active:scale-[0.98] transition-all;
 }
 
-/* Smooth Page Navigation Transition */
+/* Smooth Page Navigation Transition (Pure opacity: preserves position:fixed on mobile navbar) */
 @keyframes pageFadeIn {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    opacity: 0.25;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .page-transition {
-  animation: pageFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageFadeIn 0.18s ease-out;
 }

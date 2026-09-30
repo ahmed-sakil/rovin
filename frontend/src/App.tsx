@@ -30,7 +30,9 @@ function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
   }, [pathname]);
 
   return null;
@@ -39,14 +41,13 @@ function ScrollToTop() {
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const location = useLocation();
 
   return (
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
           <ScrollToTop />
-          <div key={location.pathname} className="page-transition w-full min-h-screen">
+          <div className="page-transition w-full min-h-screen flex flex-col justify-between">
             <Routes>
               {/* Storefront: Curated Home Experience */}
               <Route path="/" element={<HomePage />} />

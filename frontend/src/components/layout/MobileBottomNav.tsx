@@ -13,7 +13,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAuth }) 
   const { user, isAuthenticated, isAdmin } = useAuth();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-carbon-slate/95 backdrop-blur-lg border-t border-fastener-border px-3 py-2 flex items-center justify-around shadow-2xl transition-colors">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[99] bg-carbon-slate/95 backdrop-blur-xl border-t border-fastener-border px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-2xl transition-colors">
       <NavLink
         to="/"
         end
@@ -24,7 +24,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAuth }) 
         }
       >
         <Compass className="w-5 h-5" />
-        <span>CATALOG</span>
+        <span>HOME</span>
+      </NavLink>
+
+      <NavLink
+        to="/products"
+        className={({ isActive }) =>
+          `flex flex-col items-center gap-1 text-[10px] font-mono tracking-wider transition-colors ${
+            isActive ? 'text-nitro-amber font-bold' : 'text-machined-dim hover:text-machined-muted'
+          }`
+        }
+      >
+        <Package className="w-5 h-5" />
+        <span>GEAR</span>
       </NavLink>
 
       <NavLink
