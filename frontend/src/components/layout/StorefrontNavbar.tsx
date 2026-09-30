@@ -243,7 +243,7 @@ export const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ onOpenAuth }
                     onClick={() => setBurgerOpen(false)}
                     className="flex items-center justify-between px-3 py-2.5 rounded text-nitro-amber font-bold hover:bg-carbon-card"
                   >
-                    <span>Pilot Command Station</span>
+                    <span>My Account</span>
                     <ChevronRight className="w-4 h-4 text-nitro-amber" />
                   </NavLink>
                 )}

@@ -46,10 +46,6 @@ export const ContactPage: React.FC = () => {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex-1 w-full">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 telemetry-tag mb-3 border-nitro-amber/40 text-nitro-amber">
-            <MessageSquare className="w-3.5 h-3.5" />
-            DIRECT SUPPORT CHANNELS
-          </div>
           <h1 className="font-orbitron font-black text-3xl sm:text-4xl text-machined-titanium uppercase mb-2">
             TRANSMIT TO <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">COMMAND</span>
           </h1>

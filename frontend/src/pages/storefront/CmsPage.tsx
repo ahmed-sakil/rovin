@@ -7,6 +7,116 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { FileText, Shield, Clock, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Lightweight markdown renderer for headings, lists, and paragraphs
+function renderMarkdown(content: string) {
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentList: string[] = [];
+  let currentParagraph: string[] = [];
+
+  const flushParagraph = () => {
+    if (currentParagraph.length > 0) {
+      const text = currentParagraph.join(' ').trim();
+      if (text) {
+        elements.push(
+          <p key={`p-${elements.length}`} className="text-sm sm:text-base text-machined-silver font-normal leading-relaxed mb-4">
+            {formatInlineText(text)}
+          </p>
+        );
+      }
+      currentParagraph = [];
+    }
+  };
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-2 text-sm sm:text-base text-machined-silver font-normal mb-5 pl-2">
+          {currentList.map((item, i) => (
+            <li key={i}>{formatInlineText(item)}</li>
+          ))}
+        </ul>
+      );
+      currentList = [];
+    }
+  };
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+
+    if (!line) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    if (line.startsWith('### ')) {
+      flushParagraph();
+      flushList();
+      const heading = line.replace(/^###\s+/, '');
+      elements.push(
+        <h3
+          key={`h3-${elements.length}`}
+          className="font-orbitron font-bold text-base sm:text-lg text-machined-titanium mt-8 mb-3 first:mt-0 flex items-center gap-2 border-b border-fastener-border/60 pb-2"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-nitro-amber flex-shrink-0" />
+          <span>{heading}</span>
+        </h3>
+      );
+    } else if (line.startsWith('## ')) {
+      flushParagraph();
+      flushList();
+      const heading = line.replace(/^##\s+/, '');
+      elements.push(
+        <h2
+          key={`h2-${elements.length}`}
+          className="font-orbitron font-bold text-lg sm:text-xl text-machined-titanium mt-10 mb-4 first:mt-0 border-b border-fastener-border pb-2"
+        >
+          {heading}
+        </h2>
+      );
+    } else if (line.startsWith('# ')) {
+      flushParagraph();
+      flushList();
+      const heading = line.replace(/^#\s+/, '');
+      elements.push(
+        <h1
+          key={`h1-${elements.length}`}
+          className="font-orbitron font-black text-xl sm:text-2xl text-machined-titanium mt-10 mb-4 first:mt-0"
+        >
+          {heading}
+        </h1>
+      );
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      flushParagraph();
+      currentList.push(line.replace(/^[-*]\s+/, ''));
+    } else {
+      currentParagraph.push(line);
+    }
+  });
+
+  flushParagraph();
+  flushList();
+
+  return elements;
+}
+
+function formatInlineText(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  if (parts.length === 1) return text;
+
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-semibold text-machined-titanium">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
 export const CmsPage: React.FC<{ slugOverride?: string }> = ({ slugOverride }) => {
   const params = useParams<{ slug: string }>();
   const slug = slugOverride || params.slug || 'privacy-policy';
@@ -46,38 +156,31 @@ export const CmsPage: React.FC<{ slugOverride?: string }> = ({ slugOverride }) =
           to="/"
           className="inline-flex items-center gap-1.5 text-xs font-mono text-machined-dim hover:text-nitro-amber mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Hangar
+          <ArrowLeft className="w-4 h-4" /> Back to Home
         </Link>
 
         {loading ? (
           <div className="chassis-card p-8 text-center text-xs font-mono text-machined-muted">
-            CALIBRATING TRANSMISSION...
+            Loading content...
           </div>
         ) : page ? (
           <article className="chassis-card p-6 sm:p-10">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber shadow-nitro-sm"></span>
-              <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber text-[10px]">
-                OFFICIAL SPECIFICATION
-              </span>
-            </div>
-
             <h1 className="font-orbitron font-black text-2xl sm:text-3xl text-machined-titanium uppercase mb-3">
               {page.title}
             </h1>
 
             <div className="flex items-center gap-2 text-[11px] font-mono text-machined-dim pb-6 border-b border-fastener-border mb-6">
               <Clock className="w-3.5 h-3.5" />
-              <span>Calibrated on: {new Date(page.updatedAt).toLocaleDateString()}</span>
+              <span>Last updated: {new Date(page.updatedAt).toLocaleDateString()}</span>
             </div>
 
-            <div className="text-sm font-normal text-machined-silver leading-relaxed whitespace-pre-line space-y-4">
-              {page.content}
+            <div className="text-machined-silver leading-relaxed">
+              {renderMarkdown(page.content)}
             </div>
           </article>
         ) : (
           <div className="chassis-card p-8 text-center text-sm font-mono text-red-400">
-            Content transmission not found.
+            Page not found.
           </div>
         )}
       </main>

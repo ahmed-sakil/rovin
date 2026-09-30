@@ -43,13 +43,26 @@ export const HomePage: React.FC = () => {
         const prodData = await prodRes.json();
         if (prodData.success) {
           const prods: ProductItem[] = prodData.products;
-          // Filter special products
-          setSpecialProducts(prods.filter((p) => p.isSpecial));
-          // Sort for new arrivals (latest created)
-          setNewArrivals(prods.slice(0, 4));
-          // Most selling / featured items
-          const popular = [...prods].reverse().slice(0, 4);
-          setBestsellers(popular.length > 0 ? popular : prods.slice(0, 4));
+          // Filter special products (strictly max 3)
+          const specials = prods.filter((p) => p.isSpecial).slice(0, 3);
+          setSpecialProducts(specials);
+
+          // Segregate: Only non-special products for New Arrivals and Most Selling
+          const nonSpecials = prods.filter((p) => !p.isSpecial);
+
+          // New Arrivals: latest non-special products (strictly max 3)
+          const latest = nonSpecials.slice(0, 3);
+          setNewArrivals(latest);
+
+          // Most Selling: non-special products distinct from latest arrivals (strictly max 3)
+          const remaining = nonSpecials.filter((p) => !latest.some((l) => l.id === p.id));
+          const popular =
+            remaining.length >= 3
+              ? remaining.slice(0, 3)
+              : remaining.length > 0
+              ? remaining
+              : [...nonSpecials].reverse().slice(0, 3);
+          setBestsellers(popular);
         }
       } catch (e) {
         // Fallback gracefully
@@ -70,23 +83,19 @@ export const HomePage: React.FC = () => {
           <HeroMotionBackground />
 
           <div className="max-w-6xl mx-auto text-left relative z-10">
-            <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight max-w-4xl mb-4">
+            <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight max-w-4xl mb-8">
               CHISELED HARDWARE &bull;{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber via-yellow-400 to-nitro-orange">
                 BRUSHLESS SPEED
               </span>
             </h1>
 
-            <p className="text-machined-muted text-xs sm:text-base max-w-2xl font-normal leading-relaxed mb-8">
-              Precision gyro-assisted 1:16 drift chassis, high-clearance 4x4 trail crawlers, and CNC machined mechanical engine desk sculptures. Nationwide Cash on Delivery across Bangladesh.
-            </p>
-
             <div className="flex flex-wrap items-center justify-start gap-4">
               <Link
                 to="/products"
                 className="nitro-btn text-xs py-3.5 px-7 flex items-center gap-2"
               >
-                <Compass className="w-4 h-4" /> Explore Equipment Hangar
+                <Compass className="w-4 h-4" /> Explore Products
               </Link>
               <Link
                 to="/checkout"

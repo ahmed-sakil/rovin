@@ -24,27 +24,27 @@ export const StorefrontFooter: React.FC = () => {
           {/* Col 2: Navigation Links */}
           <div>
             <h4 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium mb-3">
-              Equipment Hangar
+              Catalog & Gear
             </h4>
             <ul className="space-y-2 font-mono text-[11px]">
               <li>
                 <Link to="/products" className="hover:text-nitro-amber transition-colors">
-                  All Equipment Catalog
+                  All Products
                 </Link>
               </li>
               <li>
                 <Link to="/#new-arrivals" className="hover:text-nitro-amber transition-colors">
-                  Latest New Arrivals
+                  New Arrivals
                 </Link>
               </li>
               <li>
                 <Link to="/#most-selling" className="hover:text-nitro-amber transition-colors">
-                  High-Velocity Flagships
+                  Most Selling
                 </Link>
               </li>
               <li>
-                <Link to="/account" className="hover:text-nitro-amber transition-colors">
-                  Pilot Command Station
+                <Link to="/#special-items" className="hover:text-nitro-amber transition-colors">
+                  Special Items
                 </Link>
               </li>
             </ul>
@@ -63,17 +63,17 @@ export const StorefrontFooter: React.FC = () => {
               </li>
               <li>
                 <Link to="/contact" className="hover:text-nitro-amber transition-colors">
-                  Contact & Inquiry Routing
+                  Contact Support
                 </Link>
               </li>
               <li>
                 <Link to="/privacy-policy" className="hover:text-nitro-amber transition-colors">
-                  Privacy & Data Policy
+                  Privacy Policy
                 </Link>
               </li>
               <li>
                 <Link to="/terms-conditions" className="hover:text-nitro-amber transition-colors">
-                  Terms of Operation & Warranty
+                  Terms & Warranty
                 </Link>
               </li>
             </ul>

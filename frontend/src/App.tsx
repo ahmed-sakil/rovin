@@ -25,15 +25,23 @@ import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminSettings } from './pages/admin/AdminSettings';
 
-// Scroll to top helper on route change
+// Scroll to top or anchor target on route change
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    if (window.scrollY > 0) {
+    if (hash) {
+      const timer = setTimeout(() => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
-  }, [pathname]);
+  }, [pathname, hash]);
 
   return null;
 }
