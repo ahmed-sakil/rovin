@@ -43,25 +43,23 @@ export const HomePage: React.FC = () => {
         const prodData = await prodRes.json();
         if (prodData.success) {
           const prods: ProductItem[] = prodData.products;
-          // Filter special products (strictly max 3)
-          const specials = prods.filter((p) => p.isSpecial).slice(0, 3);
+          // Filter special products (up to 6 items)
+          const specials = prods.filter((p) => p.isSpecial).slice(0, 6);
           setSpecialProducts(specials);
 
           // Segregate: Only non-special products for New Arrivals and Most Selling
           const nonSpecials = prods.filter((p) => !p.isSpecial);
 
-          // New Arrivals: latest non-special products (strictly max 3)
-          const latest = nonSpecials.slice(0, 3);
+          // New Arrivals: latest non-special products (up to 6 items)
+          const latest = nonSpecials.slice(0, 6);
           setNewArrivals(latest);
 
-          // Most Selling: non-special products distinct from latest arrivals (strictly max 3)
+          // Most Selling: non-special products, prioritizing items outside latest arrivals (up to 6 items)
           const remaining = nonSpecials.filter((p) => !latest.some((l) => l.id === p.id));
           const popular =
-            remaining.length >= 3
-              ? remaining.slice(0, 3)
-              : remaining.length > 0
-              ? remaining
-              : [...nonSpecials].reverse().slice(0, 3);
+            remaining.length >= 6
+              ? remaining.slice(0, 6)
+              : [...remaining, ...latest].slice(0, 6);
           setBestsellers(popular);
         }
       } catch (e) {
@@ -79,7 +77,7 @@ export const HomePage: React.FC = () => {
 
       <main className="flex-1 w-full">
         {/* HERO SHOWCASE SECTION WITH BRAND MOTION */}
-        <section className="border-b border-fastener-border relative overflow-hidden bg-gradient-to-b from-carbon-slate via-carbon-slate/75 to-pitch-obsidian py-16 sm:py-24 px-4 sm:px-6">
+        <section className="border-b border-fastener-border relative overflow-hidden bg-gradient-to-b from-carbon-elevated via-carbon-slate to-pitch-obsidian py-16 sm:py-24 px-4 sm:px-6">
           <HeroMotionBackground />
 
           <div className="max-w-6xl mx-auto text-left relative z-10">

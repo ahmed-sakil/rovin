@@ -28,27 +28,27 @@
   }
 
   .dark {
-    /* DARK THEME PALETTE (ROVIN Original Tactical Spec) */
+    /* DARK THEME PALETTE (Enhanced High-Visibility Tactical) */
     --color-nitro-amber: 255 200 55;      /* #FFC837 Nitro Amber */
     --color-nitro-orange: 237 106 0;      /* #ED6A00 */
     --color-nitro-glow: 255 200 55;
 
-    --color-carbon-slate: 14 15 20;       /* #0E0F14 */
-    --color-carbon-card: 20 22 31;        /* #14161F */
-    --color-carbon-elevated: 26 29 41;    /* #1A1D29 */
-    --color-carbon-hover: 34 38 54;       /* #222636 */
+    --color-carbon-slate: 20 23 33;       /* #141721 lifted surface */
+    --color-carbon-card: 26 30 43;        /* #1A1E2B crisp distinct card surface */
+    --color-carbon-elevated: 34 39 56;    /* #222738 elevated container */
+    --color-carbon-hover: 44 51 72;       /* #2C3348 */
 
-    --color-pitch-obsidian: 7 7 10;       /* #07070A */
-    --color-pitch-deep: 4 4 6;            /* #040406 */
+    --color-pitch-obsidian: 13 15 22;     /* #0D0F16 lifted deep canvas */
+    --color-pitch-deep: 8 10 14;          /* #080A0E */
 
-    --color-machined-titanium: 255 255 255; /* #FFFFFF */
-    --color-machined-silver: 226 232 240;   /* #E2E8F0 */
-    --color-machined-muted: 148 163 184;    /* #94A3B8 */
-    --color-machined-dim: 100 116 139;      /* #64748B */
+    --color-machined-titanium: 255 255 255; /* #FFFFFF pure white headings */
+    --color-machined-silver: 238 242 248;   /* #EEF2F8 crisp readable body text */
+    --color-machined-muted: 168 182 204;    /* #A8B6CC high-readability secondary */
+    --color-machined-dim: 130 146 172;      /* #8292AC readable captions & meta */
 
-    --color-fastener-gunmetal: 58 64 84;    /* #3A4054 */
-    --color-fastener-border: 36 40 54;      /* #242836 */
-    --color-fastener-dark: 28 32 44;        /* #1C202C */
+    --color-fastener-gunmetal: 75 86 112;   /* #4B5670 */
+    --color-fastener-border: 52 60 82;      /* #343C52 crisp visible borders */
+    --color-fastener-dark: 38 44 60;        /* #262C3C */
   }
 
   /* Permanent scrollbar track reservation: Eliminates jumpscare layout shift */
