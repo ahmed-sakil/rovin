@@ -43,12 +43,12 @@ export const HeroMotionBackground: React.FC = () => {
         }}
       >
         {/* Dynamic Dual Ambient Radial Glows */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[450px] bg-gradient-to-tr from-nitro-amber/25 via-nitro-orange/15 to-transparent blur-3xl rounded-full opacity-70 dark:opacity-90 pointer-events-none" />
-        <div className="absolute top-1/2 right-[10%] -translate-y-1/2 w-[450px] h-[450px] bg-gradient-to-br from-nitro-amber/20 via-nitro-orange/15 to-transparent blur-2xl rounded-full opacity-60 dark:opacity-85 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[450px] bg-gradient-to-tr from-amber-500/25 via-orange-500/15 to-transparent blur-3xl rounded-full opacity-90 pointer-events-none" />
+        <div className="absolute top-1/2 right-[10%] -translate-y-1/2 w-[450px] h-[450px] bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-transparent blur-2xl rounded-full opacity-85 pointer-events-none" />
 
         <svg
           viewBox="0 0 1200 600"
-          className="w-full h-full object-cover opacity-40 dark:opacity-85"
+          className="w-full h-full object-cover opacity-85"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
@@ -64,9 +64,9 @@ export const HeroMotionBackground: React.FC = () => {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1"
-                className="text-fastener-border/60 dark:text-fastener-gunmetal/75"
+                className="text-slate-700/75"
               />
-              <circle cx="60" cy="0" r="1.5" className="fill-nitro-amber/60 dark:fill-nitro-amber/90" />
+              <circle cx="60" cy="0" r="1.5" className="fill-amber-400/90" />
             </pattern>
           </defs>
 
@@ -76,8 +76,8 @@ export const HeroMotionBackground: React.FC = () => {
           {/* LAYER 2: Concentric Radar Arcs */}
           <g className="origin-center" transform="translate(600, 300)">
             {/* Center Pulsing Telemetry Pip */}
-            <circle r="8" fill="#FFC837" className="animate-ping opacity-60 dark:opacity-80" />
-            <circle r="4" fill="#FFC837" className="opacity-90" />
+            <circle r="8" fill="#FFC837" className="animate-ping opacity-80" />
+            <circle r="4" fill="#FFC837" className="opacity-95" />
 
             {/* Outer Slow-Rotating Ring */}
             <circle
@@ -86,16 +86,16 @@ export const HeroMotionBackground: React.FC = () => {
               stroke="#FFC837"
               strokeWidth="1.5"
               strokeDasharray="8, 12, 2, 12"
-              className="animate-[spin_60s_linear_infinite] opacity-60 dark:opacity-85"
+              className="animate-[spin_60s_linear_infinite] opacity-85"
             />
             {/* Middle Reverse Ring */}
             <circle
               r="160"
               fill="none"
-              stroke="currentColor"
+              stroke="#94A3B8"
               strokeWidth="1.5"
               strokeDasharray="6, 10"
-              className="text-machined-silver/70 dark:text-machined-silver animate-[spin_40s_linear_infinite_reverse]"
+              className="opacity-75 animate-[spin_40s_linear_infinite_reverse]"
             />
             {/* Inner Precision Ring */}
             <circle
@@ -104,12 +104,12 @@ export const HeroMotionBackground: React.FC = () => {
               stroke="url(#heroAmberGrad)"
               strokeWidth="2"
               strokeDasharray="40, 20"
-              className="opacity-80 dark:opacity-100 animate-[spin_25s_linear_infinite]"
+              className="opacity-95 animate-[spin_25s_linear_infinite]"
             />
 
             {/* Target Crosshairs */}
-            <line x1="-320" y1="0" x2="320" y2="0" stroke="currentColor" strokeWidth="1" strokeDasharray="6, 6" className="text-nitro-amber/50 dark:text-nitro-amber/70" />
-            <line x1="0" y1="-260" x2="0" y2="260" stroke="currentColor" strokeWidth="1" strokeDasharray="6, 6" className="text-nitro-amber/50 dark:text-nitro-amber/70" />
+            <line x1="-320" y1="0" x2="320" y2="0" stroke="#FFC837" strokeWidth="1" strokeDasharray="6, 6" className="opacity-60" />
+            <line x1="0" y1="-260" x2="0" y2="260" stroke="#FFC837" strokeWidth="1" strokeDasharray="6, 6" className="opacity-60" />
 
             {/* 45-Degree Calibration Bevels */}
             <line x1="-120" y1="-120" x2="-80" y2="-80" stroke="url(#heroAmberGrad)" strokeWidth="1.75" />
@@ -124,19 +124,19 @@ export const HeroMotionBackground: React.FC = () => {
               stroke="url(#heroAmberGrad)"
               strokeWidth="2"
               strokeDasharray="20, 10"
-              className="opacity-70 dark:opacity-90 animate-[pulse_4s_ease-in-out_infinite]"
+              className="opacity-90 animate-[pulse_4s_ease-in-out_infinite]"
             />
           </g>
 
           {/* LAYER 3: Kinetic Datum Guide Lines */}
-          <line x1="80" y1="180" x2="1120" y2="180" stroke="currentColor" strokeWidth="1" strokeDasharray="4, 10" className="text-machined-dim/40 dark:text-fastener-gunmetal/80" />
-          <line x1="80" y1="420" x2="1120" y2="420" stroke="currentColor" strokeWidth="1" strokeDasharray="4, 10" className="text-machined-dim/40 dark:text-fastener-gunmetal/80" />
+          <line x1="80" y1="180" x2="1120" y2="180" stroke="#475569" strokeWidth="1" strokeDasharray="4, 10" className="opacity-70" />
+          <line x1="80" y1="420" x2="1120" y2="420" stroke="#475569" strokeWidth="1" strokeDasharray="4, 10" className="opacity-70" />
 
           {/* Corner Framing Brackets */}
-          <path d="M 80,60 L 40,60 L 40,100" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-70 dark:opacity-90" />
-          <path d="M 1120,60 L 1160,60 L 1160,100" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-70 dark:opacity-90" />
-          <path d="M 80,540 L 40,540 L 40,500" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-70 dark:opacity-90" />
-          <path d="M 1120,540 L 1160,540 L 1160,500" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-70 dark:opacity-90" />
+          <path d="M 80,60 L 40,60 L 40,100" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-90" />
+          <path d="M 1120,60 L 1160,60 L 1160,100" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-90" />
+          <path d="M 80,540 L 40,540 L 40,500" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-90" />
+          <path d="M 1120,540 L 1160,540 L 1160,500" fill="none" stroke="#FFC837" strokeWidth="2.5" className="opacity-90" />
         </svg>
       </div>
     </div>

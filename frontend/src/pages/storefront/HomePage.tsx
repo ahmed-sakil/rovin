@@ -76,12 +76,12 @@ export const HomePage: React.FC = () => {
       <StorefrontNavbar />
 
       <main className="flex-1 w-full">
-        {/* HERO SHOWCASE SECTION WITH BRAND MOTION */}
-        <section className="border-b border-fastener-border relative overflow-hidden bg-gradient-to-b from-carbon-elevated via-carbon-slate to-pitch-obsidian py-16 sm:py-24 px-4 sm:px-6">
+        {/* HERO SHOWCASE SECTION WITH BRAND MOTION (Always dark tactical stage) */}
+        <section className="border-b border-[#242836] relative overflow-hidden bg-gradient-to-b from-[#141721] via-[#0E1017] to-[#07080C] py-16 sm:py-24 px-4 sm:px-6">
           <HeroMotionBackground />
 
           <div className="max-w-6xl mx-auto text-left relative z-10">
-            <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-machined-titanium tracking-tight uppercase leading-tight max-w-4xl mb-8">
+            <h1 className="font-orbitron font-black text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight uppercase leading-tight max-w-4xl mb-8">
               CHISELED HARDWARE &bull;{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber via-yellow-400 to-nitro-orange">
                 BRUSHLESS SPEED
@@ -91,13 +91,13 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-start gap-4">
               <Link
                 to="/products"
-                className="nitro-btn text-xs py-3.5 px-7 flex items-center gap-2"
+                className="nitro-btn !text-pitch-deep text-xs py-3.5 px-7 flex items-center gap-2"
               >
                 <Compass className="w-4 h-4" /> Explore Products
               </Link>
               <Link
                 to="/checkout"
-                className="outline-btn text-xs py-3.5 px-6 flex items-center gap-2"
+                className="inline-flex items-center justify-center font-orbitron font-semibold tracking-wider uppercase text-xs px-6 py-3.5 rounded border border-[#343C52] bg-[#1A1E2B]/90 text-[#EEF2F8] hover:border-white hover:bg-[#222738] active:scale-[0.98] transition-all flex items-center gap-2"
               >
                 <Truck className="w-4 h-4 text-nitro-amber" /> Fast Checkout
               </Link>
