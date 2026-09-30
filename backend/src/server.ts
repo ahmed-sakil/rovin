@@ -80,6 +80,32 @@ app.get('/api/health', async (req: Request, res: Response) => {
   });
 });
 
+// Root & Welcome Endpoints
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({
+    name: 'ROVIN Precision E-Commerce Core API Engine',
+    version: '1.0.0',
+    status: 'ONLINE',
+    health: '/api/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'ONLINE',
+    service: 'ROVIN API Engine',
+    endpoints: {
+      health: '/api/health',
+      products: '/api/products',
+      categories: '/api/categories',
+      auth: '/api/auth',
+      orders: '/api/orders',
+      cms: '/api/cms',
+    },
+  });
+});
+
 // Mounted Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
