@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-nitro-amber: #FFC837;
+    --color-nitro-orange: #ED6A00;
+    --color-carbon-slate: #0E0F14;
+    --color-pitch-obsidian: #07070A;
+    --color-machined-titanium: #FFFFFF;
+    --color-fastener-gunmetal: #3A4054;
+  }
+
+  body {
+    background-color: #07070A;
+    color: #FFFFFF;
+    overflow-x: hidden;
+  }
+}
+
+/* Tactical Telemetry & Industrial Badges */
+.telemetry-tag {
+  @apply font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded border border-fastener-gunmetal/60 bg-carbon-slate/80 text-machined-muted;
+}
+
+.chassis-card {
+  @apply bg-carbon-card border border-fastener-border/80 rounded-lg transition-all duration-200 hover:border-nitro-amber/40 hover:shadow-nitro-sm;
+}
+
+.nitro-btn {
+  @apply inline-flex items-center justify-center font-orbitron font-bold tracking-wider uppercase text-xs px-5 py-2.5 rounded bg-nitro-amber text-pitch-obsidian transition-all duration-150 hover:bg-nitro-orange hover:shadow-nitro active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.outline-btn {
+  @apply inline-flex items-center justify-center font-orbitron font-semibold tracking-wider uppercase text-xs px-5 py-2.5 rounded border border-fastener-gunmetal bg-carbon-elevated/50 text-machined-silver hover:border-machined-titanium hover:bg-carbon-hover active:scale-[0.98] transition-all;
+}

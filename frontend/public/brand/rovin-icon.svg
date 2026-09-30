@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="iconBaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#121319"/>
+      <stop offset="100%" stop-color="#060608"/>
+    </linearGradient>
+
+    <!-- Metallic Gold (Pure Solid Vector) -->
+    <linearGradient id="refinedGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFC837"/>
+      <stop offset="70%" stop-color="#FF8A00"/>
+      <stop offset="100%" stop-color="#ED6A00"/>
+    </linearGradient>
+
+    <linearGradient id="titaniumSheen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Heavy Bevelled Squircle Canvas -->
+  <rect width="512" height="512" rx="108" fill="url(#iconBaseGrad)"/>
+  <rect x="8" y="8" width="496" height="496" rx="100" fill="none" stroke="#222634" stroke-width="3"/>
+  <rect x="18" y="18" width="476" height="476" rx="90" fill="none" stroke="#141722" stroke-width="1.5"/>
+
+  <!-- Centered Scaled Emblem (Zero Blur, Crisp Geometry) -->
+  <g transform="translate(108, 92) scale(1.72)">
+
+    <!-- OUTER CHASSIS: Precision Bevelled Hex-Shield -->
+    <path d="M 52,14 L 120,14 L 160,54 L 160,122 L 120,162 L 52,162 L 12,122 L 12,54 Z" 
+          fill="none" 
+          stroke="#262B3B" 
+          stroke-width="5.5" 
+          stroke-linejoin="miter"/>
+
+    <!-- Secondary Tension Rail -->
+    <path d="M 56,22 L 116,22 L 152,58 L 152,118 L 116,154 L 56,154 L 20,118 L 20,58 Z" 
+          fill="none" 
+          stroke="#181B26" 
+          stroke-width="1.5"/>
+
+    <!-- Corner Rivets -->
+    <circle cx="52" cy="14" r="3.5" fill="#4B526B"/>
+    <circle cx="120" cy="14" r="3.5" fill="#4B526B"/>
+    <circle cx="160" cy="54" r="3.5" fill="#4B526B"/>
+    <circle cx="160" cy="122" r="3.5" fill="#4B526B"/>
+    <circle cx="120" cy="162" r="3.5" fill="#4B526B"/>
+    <circle cx="52" cy="162" r="3.5" fill="#4B526B"/>
+    <circle cx="12" cy="122" r="3.5" fill="#4B526B"/>
+    <circle cx="12" cy="54" r="3.5" fill="#4B526B"/>
+
+    <!-- Calibrations -->
+    <line x1="86" y1="10" x2="86" y2="18" stroke="url(#refinedGold)" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="86" y1="158" x2="86" y2="166" stroke="#4B526B" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- INNER STENCIL 'R' -->
+    <!-- Left Vertical Stanchion -->
+    <path d="M 40,42 L 64,42 L 64,134 L 48,134 L 40,126 Z" 
+          fill="url(#titaniumSheen)"/>
+
+    <!-- Upper Mechanical Loop -->
+    <path d="M 72,42 L 116,42 L 136,62 L 136,74 L 116,94 L 72,94 Z M 93,60 L 72,60 L 72,76 L 93,76 L 110,76 L 116,70 L 116,66 L 110,60 Z" 
+          fill="url(#titaniumSheen)"/>
+
+    <!-- Suspension Kick-Leg (Razor Sharp, No Glow) -->
+    <polygon points="72,94 97,94 133,134 105,134 82,109 72,109" 
+             fill="url(#refinedGold)"/>
+
+    <!-- Notches -->
+    <rect x="122" y="38" width="10" height="3.5" fill="url(#refinedGold)"/>
+    <circle cx="132" cy="94" r="2.8" fill="url(#refinedGold)"/>
+
+  </g>
+</svg>
