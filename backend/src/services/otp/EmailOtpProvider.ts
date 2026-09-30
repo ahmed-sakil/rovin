@@ -16,6 +16,9 @@ export class EmailOtpProvider implements IOtpProvider {
         port,
         secure: port === 465,
         auth: { user, pass },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
       });
     }
   }
@@ -71,6 +74,7 @@ export class EmailOtpProvider implements IOtpProvider {
       return true;
     } catch (err) {
       console.error('[ROVIN Email OTP Error]:', err);
+      console.warn(`[ROVIN FALLBACK OTP ALERT] SMTP failed. OTP code for ${payload.recipient} is: >>> ${payload.code} <<<`);
       return false;
     }
   }

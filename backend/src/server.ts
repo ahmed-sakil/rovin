@@ -17,6 +17,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5050;
 
+// Enable trust proxy for Render, Heroku, Cloudflare, etc.
+app.set('trust proxy', 1);
+
 // Security & Parsing Middlewares
 app.use(
   helmet({
