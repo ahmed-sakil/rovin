@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
 import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { BrandLogo } from '../../components/brand/BrandLogo';
 import {
   Truck,
   ShieldCheck,
@@ -18,40 +19,26 @@ import {
   User,
   MapPin,
   Lock,
+  Mail,
+  KeyRound,
+  CheckSquare,
+  Square,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BD_DISTRICTS = [
-  'Dhaka',
-  'Gazipur',
-  'Narayanganj',
-  'Chittagong',
-  'Cox\'s Bazar',
-  'Sylhet',
-  'Mymensingh',
-  'Rajshahi',
-  'Bogra',
-  'Khulna',
-  'Barisal',
-  'Rangpur',
-  'Comilla',
-  'Brahmanbaria',
-  'Noakhali',
-  'Feni',
-  'Tangail',
-  'Faridpur',
-  'Jessore',
-  'Kushtia',
-  'Pabna',
-  'Dinajpur',
-  'Other District (All BD Covered)',
+  'Dhaka', 'Gazipur', 'Narayanganj', 'Chittagong', 'Cox\'s Bazar', 'Sylhet',
+  'Mymensingh', 'Rajshahi', 'Bogra', 'Khulna', 'Barisal', 'Rangpur',
+  'Comilla', 'Brahmanbaria', 'Noakhali', 'Feni', 'Tangail', 'Faridpur',
+  'Jessore', 'Kushtia', 'Pabna', 'Dinajpur', 'Other District (All BD Covered)'
 ];
 
 export const CheckoutPage: React.FC = () => {
   usePageTitle('Fast 1-Page Checkout', 'Frictionless nationwide order placement');
   const navigate = useNavigate();
   const { items, subtotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  const { user, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated, login, sendRegisterOtp, verifyAndRegister } = useAuth();
 
   // Form State
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -77,6 +64,22 @@ export const CheckoutPage: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
 
+  // Inline Auth State (when user is not yet logged in)
+  const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
+  const [authIdentifier, setAuthIdentifier] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // Inline Register State
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPhone, setRegPhone] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regGender, setRegGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
+  const [regOtp, setRegOtp] = useState('');
+  const [regStep, setRegStep] = useState<1 | 2>(1);
+  const [agreePolicy, setAgreePolicy] = useState(true);
+
   // Load Settings
   useEffect(() => {
     const fetchSettings = async () => {
@@ -100,11 +103,11 @@ export const CheckoutPage: React.FC = () => {
   // Update fields if user logs in
   useEffect(() => {
     if (user) {
-      if (!customerName) setCustomerName(user.name);
-      if (!customerPhone) setCustomerPhone(user.phone);
-      if (!customerEmail) setCustomerEmail(user.email);
+      setCustomerName(user.name);
+      setCustomerPhone(user.phone);
+      setCustomerEmail(user.email);
 
-      // Default address
+      // Default address if available
       const defaultAddr = user.addresses?.find((a) => a.isDefault) || user.addresses?.[0];
       if (defaultAddr) {
         setDistrict(defaultAddr.district);
@@ -149,9 +152,56 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
+  // Inline Quick Login
+  const handleInlineLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    await login(authIdentifier, authPassword);
+    setAuthLoading(false);
+  };
+
+  // Inline Register Step 1: Send OTP
+  const handleInlineSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreePolicy) {
+      toast.error('Policy Agreement Required', { description: 'Please agree to terms & privacy policy.' });
+      return;
+    }
+    if (regPassword.length < 6) {
+      toast.error('Weak Password', { description: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setAuthLoading(true);
+    const sent = await sendRegisterOtp(regEmail, regPhone);
+    setAuthLoading(false);
+    if (sent) setRegStep(2);
+  };
+
+  // Inline Register Step 2: Verify & Register
+  const handleInlineVerifyAndRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    await verifyAndRegister({
+      name: regName,
+      email: regEmail,
+      phone: regPhone,
+      password: regPassword,
+      gender: regGender,
+      otp: regOtp,
+    });
+    setAuthLoading(false);
+  };
+
   // Submit Order
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAuthenticated || !token) {
+      toast.error('Authentication Required', {
+        description: 'Please sign in or register above to confirm your order dispatch.',
+      });
+      return;
+    }
 
     if (items.length === 0) {
       toast.error('Cart Empty', { description: 'Select at least one product before checking out.' });
@@ -162,6 +212,11 @@ export const CheckoutPage: React.FC = () => {
       toast.error('Invalid Phone Number', {
         description: 'Enter a valid 11-digit Bangladesh phone (e.g. 017XXXXXXXX).',
       });
+      return;
+    }
+
+    if (!deliveryAddress.trim() || !thana.trim()) {
+      toast.error('Incomplete Coordinates', { description: 'Please provide full address and thana/area.' });
       return;
     }
 
@@ -187,7 +242,10 @@ export const CheckoutPage: React.FC = () => {
 
       const res = await fetch('/api/orders/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -209,7 +267,7 @@ export const CheckoutPage: React.FC = () => {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-        <StorefrontNavbar onOpenAuth={() => {}} />
+        <StorefrontNavbar />
         <main className="max-w-xl mx-auto px-6 py-20 text-center flex-1 flex flex-col items-center justify-center">
           <ShoppingBag className="w-16 h-16 text-machined-dim mb-4" />
           <h2 className="font-orbitron font-bold text-xl text-machined-titanium uppercase mb-2">
@@ -218,25 +276,25 @@ export const CheckoutPage: React.FC = () => {
           <p className="text-xs text-machined-muted font-mono mb-6">
             Explore our collection of gyro-assisted RC drift cars, high-torque crawlers, and machined room decor.
           </p>
-          <Link to="/products" className="nitro-btn text-xs py-3 px-6">
-            Explore ROVIN Catalog
+          <Link to="/" className="nitro-btn flex items-center gap-2">
+            Explore ROVIN Catalog <ArrowRight className="w-4 h-4" />
           </Link>
         </main>
-        <MobileBottomNav onOpenAuth={() => {}} />
+        <MobileBottomNav />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
-      <StorefrontNavbar onOpenAuth={() => {}} />
+      <StorefrontNavbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
-        {/* Checkout Header Ribbon */}
-        <div className="flex items-center justify-between pb-4 border-b border-fastener-border mb-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
+        {/* Header Telemetry */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-fastener-border gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber shadow-nitro-sm"></span>
+            <div className="flex items-center gap-3">
+              <BrandLogo variant="icon" size="sm" />
               <h1 className="font-orbitron font-black text-xl sm:text-2xl text-machined-titanium uppercase">
                 FAST 1-PAGE CHECKOUT
               </h1>
@@ -251,59 +309,310 @@ export const CheckoutPage: React.FC = () => {
         </div>
 
         <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Customer Details, Address & Payment (7 Cols) */}
+          {/* Left Column: Customer Identification, Address & Payment (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
-            {/* 1. Customer Identification */}
+            {/* 1. Recipient Information & Mandatory Auth Check */}
             <div className="chassis-card p-5 sm:p-6 space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-fastener-border">
-                <User className="w-4 h-4 text-nitro-amber" />
-                <h2 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium">
-                  1. Recipient Information
-                </h2>
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                  Full Name <span className="text-nitro-amber">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Sakil Ahmed"
-                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    BD Mobile Phone (01XXXXXXXXX) <span className="text-nitro-amber">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="01711223344"
-                    className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs font-mono text-nitro-amber focus:outline-none focus:border-nitro-amber"
-                  />
+              <div className="flex items-center justify-between pb-3 border-b border-fastener-border">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-nitro-amber" />
+                  <h2 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium">
+                    1. Pilot Identification & Account
+                  </h2>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    Email Address (Optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    placeholder="pilot@domain.com"
-                    className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
-                  />
-                </div>
+                {isAuthenticated && (
+                  <span className="telemetry-tag border-emerald-500/50 text-emerald-400 flex items-center gap-1 text-[10px]">
+                    <CheckCircle className="w-3 h-3" /> PILOT VERIFIED
+                  </span>
+                )}
               </div>
+
+              {/* If NOT Authenticated: Show Integrated Tactical Auth Gate */}
+              {!isAuthenticated ? (
+                <div className="bg-carbon-elevated border border-nitro-amber/40 rounded-lg p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-8 h-8 rounded bg-nitro-amber/10 border border-nitro-amber/40 flex items-center justify-center text-nitro-amber flex-shrink-0">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-orbitron font-bold text-sm text-machined-titanium">
+                        Pilot Authentication Required to Place Order
+                      </h3>
+                      <p className="text-xs font-mono text-machined-muted mt-0.5">
+                        Please sign in or create an account with a 6-digit code. Your cart items are preserved.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Tabs: Sign In / Register */}
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setAuthTab('login')}
+                      className={`py-2 text-xs font-orbitron font-bold rounded transition-colors ${
+                        authTab === 'login'
+                          ? 'bg-nitro-amber text-pitch-obsidian shadow-nitro-sm'
+                          : 'bg-carbon-slate text-machined-dim hover:text-machined-titanium border border-fastener-border'
+                      }`}
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAuthTab('register')}
+                      className={`py-2 text-xs font-orbitron font-bold rounded transition-colors ${
+                        authTab === 'register'
+                          ? 'bg-nitro-amber text-pitch-obsidian shadow-nitro-sm'
+                          : 'bg-carbon-slate text-machined-dim hover:text-machined-titanium border border-fastener-border'
+                      }`}
+                    >
+                      New Pilot (OTP)
+                    </button>
+                  </div>
+
+                  {authTab === 'login' ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                          Email or BD Mobile (01XXXXXXXXX)
+                        </label>
+                        <input
+                          type="text"
+                          value={authIdentifier}
+                          onChange={(e) => setAuthIdentifier(e.target.value)}
+                          placeholder="pilot@rovin.com.bd or 017XXXXXXXX"
+                          className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                          Security Password
+                        </label>
+                        <input
+                          type="password"
+                          value={authPassword}
+                          onChange={(e) => setAuthPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleInlineLogin}
+                        disabled={authLoading || !authIdentifier || !authPassword}
+                        className="nitro-btn w-full text-xs py-2.5 mt-2 flex items-center justify-center gap-2"
+                      >
+                        {authLoading ? 'Verifying Pilot...' : 'Sign In & Unlock Checkout'}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      {regStep === 1 ? (
+                        <div className="space-y-2.5">
+                          <div>
+                            <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                              Pilot Name
+                            </label>
+                            <input
+                              type="text"
+                              value={regName}
+                              onChange={(e) => setRegName(e.target.value)}
+                              placeholder="Sakil Ahmed"
+                              className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                                Email
+                              </label>
+                              <input
+                                type="email"
+                                value={regEmail}
+                                onChange={(e) => setRegEmail(e.target.value)}
+                                placeholder="pilot@rovin.com.bd"
+                                className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                                BD Mobile (11 Digits)
+                              </label>
+                              <input
+                                type="tel"
+                                value={regPhone}
+                                onChange={(e) => setRegPhone(e.target.value)}
+                                placeholder="017XXXXXXXX"
+                                className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                                Gender
+                              </label>
+                              <select
+                                value={regGender}
+                                onChange={(e) => setRegGender(e.target.value as any)}
+                                className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                              >
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                                Password (Min 6)
+                              </label>
+                              <input
+                                type="password"
+                                value={regPassword}
+                                onChange={(e) => setRegPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-carbon-card border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div
+                            onClick={() => setAgreePolicy(!agreePolicy)}
+                            className="flex items-center gap-2 pt-1 cursor-pointer select-none"
+                          >
+                            <div className="text-nitro-amber">
+                              {agreePolicy ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5 text-machined-dim" />}
+                            </div>
+                            <span className="text-[11px] font-mono text-machined-muted">
+                              I agree to ROVIN Terms & Privacy Policy
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleInlineSendOtp}
+                            disabled={authLoading || !regName || !regEmail || !regPhone || !regPassword}
+                            className="nitro-btn w-full text-xs py-2.5 mt-2 flex items-center justify-center gap-2"
+                          >
+                            {authLoading ? 'Transmitting Code...' : 'Dispatch 6-Digit Code'}
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 text-center">
+                          <p className="text-xs font-mono text-machined-silver">
+                            Verification code sent to <strong>{regEmail}</strong>
+                          </p>
+                          <input
+                            type="text"
+                            maxLength={6}
+                            value={regOtp}
+                            onChange={(e) => setRegOtp(e.target.value.replace(/\D/g, ''))}
+                            placeholder="000000"
+                            className="w-full text-center tracking-[0.5em] text-xl font-mono font-bold bg-carbon-card border border-nitro-amber rounded p-2.5 text-nitro-amber outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleInlineVerifyAndRegister}
+                            disabled={authLoading || regOtp.length !== 6}
+                            className="nitro-btn w-full text-xs py-2.5"
+                          >
+                            {authLoading ? 'Verifying...' : 'Verify Code & Unlock Checkout'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRegStep(1)}
+                            className="text-xs font-mono text-machined-dim hover:text-machined-silver"
+                          >
+                            &larr; Back
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Authenticated User Status & Coordinates preloaded */
+                <div className="space-y-4">
+                  <div className="bg-carbon-elevated border border-fastener-border rounded p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
+                        alt={user?.name}
+                        className="w-9 h-9 rounded-full border border-nitro-amber/70 object-cover"
+                      />
+                      <div>
+                        <p className="font-orbitron font-bold text-xs text-machined-titanium">{user?.name}</p>
+                        <p className="text-[11px] font-mono text-machined-dim">{user?.phone} &bull; {user?.email}</p>
+                      </div>
+                    </div>
+                    <span className="telemetry-tag border-nitro-amber/30 text-nitro-amber text-[10px]">
+                      {user?.role}
+                    </span>
+                  </div>
+
+                  {/* Quick Address Selector if user has saved addresses */}
+                  {user?.addresses && user.addresses.length > 0 && (
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1.5">
+                        Select Saved Delivery Address
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {user.addresses.map((addr) => (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => {
+                              setDistrict(addr.district);
+                              setThana(addr.thana);
+                              setDeliveryAddress(addr.addressLine);
+                              toast.info(`Coordinates applied: ${addr.title}`);
+                            }}
+                            className={`px-3 py-1.5 rounded text-xs font-mono border transition-all text-left ${
+                              deliveryAddress === addr.addressLine
+                                ? 'border-nitro-amber bg-nitro-amber/10 text-nitro-amber font-bold'
+                                : 'border-fastener-border bg-carbon-elevated text-machined-silver hover:border-machined-titanium'
+                            }`}
+                          >
+                            {addr.title} ({addr.district})
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
+                        Recipient Name <span className="text-nitro-amber">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Sakil Ahmed"
+                        className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
+                        BD Mobile Phone <span className="text-nitro-amber">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="01711223344"
+                        className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs font-mono text-nitro-amber focus:outline-none focus:border-nitro-amber"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 2. Delivery Address & Auto Rate Calculation */}
@@ -331,7 +640,7 @@ export const CheckoutPage: React.FC = () => {
                     className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
                   >
                     {BD_DISTRICTS.map((d) => (
-                      <option key={d} value={d}>
+                      <option key={d} value={d} className="bg-carbon-card text-machined-titanium">
                         {d} {d === 'Dhaka' ? `(Inside Dhaka: ৳${dhakaRate})` : `(৳${outsideRate})`}
                       </option>
                     ))}
@@ -358,12 +667,12 @@ export const CheckoutPage: React.FC = () => {
                   Detailed Address (House, Road, Area, Landmarks) <span className="text-nitro-amber">*</span>
                 </label>
                 <textarea
-                  rows={2}
                   required
+                  rows={3}
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  placeholder="House 12, Road 4, Sector 7, Near North Tower"
-                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
+                  placeholder="House 14, Road 2/A, Block C..."
+                  className="w-full bg-carbon-slate border border-fastener-border rounded px-3.5 py-2.5 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber"
                 />
               </div>
             </div>
@@ -373,182 +682,185 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center gap-2 pb-3 border-b border-fastener-border">
                 <CreditCard className="w-4 h-4 text-nitro-amber" />
                 <h2 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium">
-                  3. Payment Method
+                  3. Payment Protocol
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Cash on Delivery */}
-                <div
+                <button
+                  type="button"
                   onClick={() => setPaymentMethod('COD')}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-4 rounded-lg border text-left flex flex-col justify-between transition-all ${
                     paymentMethod === 'COD'
-                      ? 'border-nitro-amber bg-carbon-slate shadow-nitro-sm'
-                      : 'border-fastener-border bg-carbon-card/50 hover:border-machined-muted'
+                      ? 'border-nitro-amber bg-nitro-amber/10 shadow-nitro-sm'
+                      : 'border-fastener-border bg-carbon-slate hover:border-machined-muted'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="font-orbitron font-bold text-xs text-machined-titanium">COD</span>
-                    <Truck className="w-4 h-4 text-nitro-amber" />
+                    {paymentMethod === 'COD' && <CheckCircle className="w-4 h-4 text-nitro-amber" />}
                   </div>
-                  <p className="text-[11px] font-mono text-machined-dim leading-snug">
-                    Pay cash upon delivery to courier rider. Zero upfront charge.
-                  </p>
-                </div>
+                  <p className="text-[11px] font-mono text-machined-muted">Cash on Delivery</p>
+                </button>
 
-                {/* bKash */}
-                <div
+                <button
+                  type="button"
                   onClick={() => setPaymentMethod('BKASH')}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-4 rounded-lg border text-left flex flex-col justify-between transition-all ${
                     paymentMethod === 'BKASH'
-                      ? 'border-nitro-amber bg-carbon-slate shadow-nitro-sm'
-                      : 'border-fastener-border bg-carbon-card/50 hover:border-machined-muted'
+                      ? 'border-pink-500 bg-pink-500/10 shadow-nitro-sm'
+                      : 'border-fastener-border bg-carbon-slate hover:border-machined-muted'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="font-orbitron font-bold text-xs text-pink-400">bKash</span>
-                    <span className="text-[10px] font-mono text-nitro-amber">MFS</span>
+                    {paymentMethod === 'BKASH' && <CheckCircle className="w-4 h-4 text-pink-400" />}
                   </div>
-                  <p className="text-[11px] font-mono text-machined-dim leading-snug">
-                    Send Money / Merchant payment to <code className="text-pink-400">{bkashMerchant}</code>
-                  </p>
-                </div>
+                  <p className="text-[11px] font-mono text-machined-muted">Mobile Financial Service</p>
+                </button>
 
-                {/* Nagad */}
-                <div
+                <button
+                  type="button"
                   onClick={() => setPaymentMethod('NAGAD')}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-4 rounded-lg border text-left flex flex-col justify-between transition-all ${
                     paymentMethod === 'NAGAD'
-                      ? 'border-nitro-amber bg-carbon-slate shadow-nitro-sm'
-                      : 'border-fastener-border bg-carbon-card/50 hover:border-machined-muted'
+                      ? 'border-orange-500 bg-orange-500/10 shadow-nitro-sm'
+                      : 'border-fastener-border bg-carbon-slate hover:border-machined-muted'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="font-orbitron font-bold text-xs text-orange-400">Nagad</span>
-                    <span className="text-[10px] font-mono text-nitro-amber">MFS</span>
+                    {paymentMethod === 'NAGAD' && <CheckCircle className="w-4 h-4 text-orange-400" />}
                   </div>
-                  <p className="text-[11px] font-mono text-machined-dim leading-snug">
-                    Send Money / Merchant payment to <code className="text-orange-400">{nagadMerchant}</code>
+                  <p className="text-[11px] font-mono text-machined-muted">Post Office Digital</p>
+                </button>
+              </div>
+
+              {paymentMethod === 'COD' && (
+                <div className="p-3 bg-carbon-slate border border-fastener-border rounded text-xs font-mono text-machined-silver flex items-start gap-2">
+                  <Truck className="w-4 h-4 text-nitro-amber flex-shrink-0 mt-0.5" />
+                  <span>
+                    Pay with physical cash to the Steadfast / Pathao courier rider upon parcel inspection at your doorstep.
+                  </span>
+                </div>
+              )}
+
+              {paymentMethod === 'BKASH' && (
+                <div className="p-3.5 bg-pink-500/5 border border-pink-500/30 rounded text-xs font-mono text-pink-200">
+                  <p className="font-bold text-pink-400 mb-1">bKash Merchant Payment Guide:</p>
+                  <p className="text-machined-silver">
+                    Please send <strong>৳{finalTotal.toLocaleString()}</strong> to Merchant Account:{' '}
+                    <span className="text-pink-400 font-bold">{bkashMerchant}</span>. Keep the TrxID handy.
                   </p>
                 </div>
-              </div>
+              )}
+
+              {paymentMethod === 'NAGAD' && (
+                <div className="p-3.5 bg-orange-500/5 border border-orange-500/30 rounded text-xs font-mono text-orange-200">
+                  <p className="font-bold text-orange-400 mb-1">Nagad Merchant Payment Guide:</p>
+                  <p className="text-machined-silver">
+                    Please send <strong>৳{finalTotal.toLocaleString()}</strong> to Merchant Account:{' '}
+                    <span className="text-orange-400 font-bold">{nagadMerchant}</span>. Keep the TrxID handy.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column: Order Summary & Placement (5 Cols) */}
+          {/* Right Column: Order Summary & Coupon (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
             <div className="chassis-card p-5 sm:p-6 sticky top-20">
-              <h2 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium pb-3 border-b border-fastener-border mb-4">
-                Order Manifest ({items.length} Items)
+              <h2 className="font-orbitron font-bold text-sm uppercase tracking-wider text-machined-titanium pb-3 border-b border-fastener-border mb-4">
+                Cart Summary ({items.length} {items.length === 1 ? 'Unit' : 'Units'})
               </h2>
 
               {/* Items List */}
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-1 mb-4 divide-y divide-fastener-border/50">
-                {items.map((item, idx) => (
-                  <div key={`${item.productId}-${idx}`} className="pt-3 first:pt-0 flex items-center justify-between gap-3 text-xs">
+              <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+                {items.map((item) => (
+                  <div key={item.productId} className="flex gap-3 text-xs">
                     <img
-                      src={item.image}
+                      src={item.image || '/brand/rovin-icon.svg'}
                       alt={item.title}
-                      className="w-12 h-12 rounded bg-carbon-slate border border-fastener-border object-cover flex-shrink-0"
+                      className="w-14 h-14 object-cover rounded border border-fastener-border flex-shrink-0"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-machined-titanium truncate leading-tight">{item.title}</p>
-                      <span className="text-[10px] font-mono text-machined-dim block">
-                        {item.chosenColor ? `Color: ${item.chosenColor}` : item.sku}
-                      </span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.chosenColor)}
-                          className="w-4 h-4 rounded bg-carbon-slate border border-fastener-gunmetal flex items-center justify-center font-bold text-[10px]"
-                        >
-                          -
-                        </button>
-                        <span className="font-mono text-xs font-bold text-nitro-amber">{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1, item.chosenColor)}
-                          className="w-4 h-4 rounded bg-carbon-slate border border-fastener-gunmetal flex items-center justify-center font-bold text-[10px]"
-                        >
-                          +
-                        </button>
-                      </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-machined-titanium line-clamp-1">{item.title}</h4>
+                      <p className="font-mono text-machined-dim text-[11px]">
+                        ৳{item.price.toLocaleString()} &bull; Qty: {item.quantity}
+                        {item.chosenColor && ` &bull; Color: ${item.chosenColor}`}
+                      </p>
+                      <p className="font-mono text-nitro-amber font-bold mt-1">
+                        ৳{(item.price * item.quantity).toLocaleString()}
+                      </p>
                     </div>
-                    <span className="font-orbitron font-bold text-machined-titanium">
-                      ৳{(item.price * item.quantity).toLocaleString()}
-                    </span>
                   </div>
                 ))}
               </div>
 
-              {/* Coupon Form */}
-              <div className="pt-3 border-t border-fastener-border mb-4">
-                <label className="block text-[11px] font-mono text-machined-muted uppercase mb-1">
-                  Promotional Coupon
-                </label>
+              {/* Coupon Engine */}
+              <div className="pt-4 mt-4 border-t border-fastener-border">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="ENTER CODE"
+                    placeholder="COUPON CODE"
                     disabled={couponApplied}
-                    className="flex-1 bg-carbon-slate border border-fastener-border rounded px-3 py-1.5 text-xs font-mono uppercase text-nitro-amber"
+                    className="flex-1 bg-carbon-slate border border-fastener-border rounded px-3 py-2 text-xs font-mono uppercase text-machined-titanium focus:border-nitro-amber outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
-                    disabled={couponLoading || couponApplied || !couponCode.trim()}
-                    className="outline-btn text-[11px] py-1.5 px-3"
+                    disabled={couponLoading || !couponCode.trim() || couponApplied}
+                    className="outline-btn text-xs px-4"
                   >
-                    {couponApplied ? 'Applied' : couponLoading ? 'Checking...' : 'Apply'}
+                    {couponLoading ? '...' : couponApplied ? 'Applied' : 'Apply'}
                   </button>
                 </div>
+                {couponApplied && (
+                  <p className="text-[11px] font-mono text-emerald-400 mt-1 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Coupon applied (-৳{discountAmount.toLocaleString()})
+                  </p>
+                )}
               </div>
 
-              {/* Financial Calculation Breakdown */}
-              <div className="space-y-2 pt-3 border-t border-fastener-border text-xs font-mono">
-                <div className="flex justify-between text-machined-muted">
-                  <span>Subtotal</span>
-                  <span className="text-machined-silver">৳{subtotal.toLocaleString()}</span>
+              {/* Financial Calculation */}
+              <div className="pt-4 mt-4 border-t border-fastener-border space-y-2 text-xs font-mono">
+                <div className="flex justify-between text-machined-silver">
+                  <span>Equipment Subtotal:</span>
+                  <span>৳{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-machined-muted">
-                  <span>Delivery ({isDhaka ? 'Inside Dhaka' : 'Outside Dhaka'})</span>
-                  <span className={deliveryCharge === 0 ? 'text-emerald-400 font-bold' : 'text-machined-silver'}>
-                    {deliveryCharge === 0 ? 'FREE' : `৳${deliveryCharge}`}
-                  </span>
+                <div className="flex justify-between text-machined-silver">
+                  <span>Delivery ({isDhaka ? 'Inside Dhaka' : 'Outside Dhaka'}):</span>
+                  <span>{deliveryCharge === 0 ? <strong className="text-emerald-400">FREE SHIPPING</strong> : `৳${deliveryCharge}`}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-400">
-                    <span>Coupon Discount</span>
+                    <span>Discount Voucher:</span>
                     <span>-৳{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-orbitron font-bold text-machined-titanium pt-2 border-t border-fastener-border">
-                  <span>Total Payable</span>
-                  <span className="text-nitro-amber text-base">৳{finalTotal.toLocaleString()}</span>
+                <div className="pt-3 border-t border-fastener-border flex justify-between items-center text-sm font-bold">
+                  <span className="font-orbitron uppercase text-machined-titanium">Total Payable:</span>
+                  <span className="font-orbitron text-xl text-nitro-amber">
+                    ৳{finalTotal.toLocaleString()}
+                  </span>
                 </div>
               </div>
 
-              {/* Place Order CTA Button */}
+              {/* Confirmation Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full nitro-btn mt-6 py-3.5 text-sm flex items-center justify-center gap-2 shadow-nitro"
+                className="nitro-btn w-full text-xs py-3.5 mt-6 shadow-nitro flex items-center justify-center gap-2"
               >
-                {loading ? (
-                  'COMMITTING ORDER...'
-                ) : (
-                  <>
-                    <span>CONFIRM & PLACE ORDER &bull; ৳{finalTotal.toLocaleString()}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                {loading ? 'Transmitting Mission Order...' : !isAuthenticated ? 'Sign In / Register Above to Confirm Order' : 'Authorize & Confirm Order'}
+                <ArrowRight className="w-4 h-4" />
               </button>
 
-              <div className="mt-3 text-center text-[10px] font-mono text-machined-dim flex items-center justify-center gap-1.5">
-                <Lock className="w-3 h-3 text-emerald-400" />
-                <span>Steadfast & Pathao parcel protection included</span>
+              <div className="mt-4 pt-4 border-t border-fastener-border text-center text-[10px] font-mono text-machined-dim flex items-center justify-center gap-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>ROVIN 100% Quality & Pre-Dispatch Tested Guarantee</span>
               </div>
             </div>
           </div>
@@ -556,10 +868,18 @@ export const CheckoutPage: React.FC = () => {
       </main>
 
       <footer className="border-t border-fastener-border py-6 px-6 text-center text-xs text-machined-dim bg-pitch-deep">
-        <span className="font-mono">ROVIN BANGLADESH &bull; PRECISION TELEMETRY PROTOCOL</span>
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="font-mono">ROVIN BANGLADESH &bull; PRECISION TELEMETRY PROTOCOL</span>
+          <div className="flex gap-4 font-mono text-[11px]">
+            <Link to="/about" className="hover:text-nitro-amber">About</Link>
+            <Link to="/contact" className="hover:text-nitro-amber">Contact</Link>
+            <Link to="/privacy-policy" className="hover:text-nitro-amber">Privacy</Link>
+            <Link to="/terms-conditions" className="hover:text-nitro-amber">Terms</Link>
+          </div>
+        </div>
       </footer>
 
-      <MobileBottomNav onOpenAuth={() => {}} />
+      <MobileBottomNav />
     </div>
   );
 };

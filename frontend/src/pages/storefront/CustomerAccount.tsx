@@ -1,0 +1,724 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth, UserAddress } from '../../context/AuthContext';
+import { StorefrontNavbar } from '../../components/layout/StorefrontNavbar';
+import { MobileBottomNav } from '../../components/layout/MobileBottomNav';
+import { usePageTitle } from '../../hooks/usePageTitle';
+import { BrandLogo } from '../../components/brand/BrandLogo';
+import {
+  Package,
+  MapPin,
+  User,
+  Shield,
+  LogOut,
+  Plus,
+  Trash2,
+  Clock,
+  Truck,
+  ExternalLink,
+  ChevronRight,
+  ShoppingBag,
+  CheckCircle2,
+  Calendar,
+  Phone,
+  Mail,
+  Lock,
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+const BD_DISTRICTS = [
+  'Dhaka', 'Gazipur', 'Narayanganj', 'Chittagong', 'Cox\'s Bazar', 'Sylhet',
+  'Mymensingh', 'Rajshahi', 'Bogra', 'Khulna', 'Barisal', 'Rangpur',
+  'Comilla', 'Brahmanbaria', 'Noakhali', 'Feni', 'Tangail', 'Faridpur',
+  'Jessore', 'Kushtia', 'Pabna', 'Dinajpur', 'Other District (All BD Covered)'
+];
+
+interface OrderItem {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  chosenColor?: string;
+  chosenSize?: string;
+  product: {
+    id: string;
+    title: string;
+    images: string[];
+    slug: string;
+  };
+}
+
+interface CourierConsignment {
+  id: string;
+  courier: string;
+  consignmentId: string;
+  trackingCode?: string;
+  status: string;
+}
+
+interface OrderRecord {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  district: string;
+  thana: string;
+  subtotal: number;
+  deliveryCharge: number;
+  discountAmount: number;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  orderStatus: string;
+  createdAt: string;
+  orderItems: OrderItem[];
+  consignments: CourierConsignment[];
+}
+
+export const CustomerAccount: React.FC = () => {
+  usePageTitle('Pilot Command Station', 'Personal Telemetry, Mission History, & Address Matrix');
+  const navigate = useNavigate();
+  const { user, token, isAuthenticated, logout, refreshProfile } = useAuth();
+
+  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'security'>('orders');
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // Address form modal
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressTitle, setAddressTitle] = useState('Home Base');
+  const [recipientName, setRecipientName] = useState(user?.name || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
+  const [district, setDistrict] = useState('Dhaka');
+  const [thana, setThana] = useState('');
+  const [addressLine, setAddressLine] = useState('');
+  const [isDefault, setIsDefault] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+
+  // Password Change
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPass, setChangingPass] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/account');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Fetch personal orders
+  const fetchMyOrders = async () => {
+    if (!token) return;
+    setLoadingOrders(true);
+    try {
+      const res = await fetch('/api/orders/my-orders', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders(data.orders || []);
+      }
+    } catch {
+      toast.error('Telemetry Error', { description: 'Failed to retrieve mission history.' });
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token && activeTab === 'orders') {
+      fetchMyOrders();
+    }
+  }, [token, activeTab]);
+
+  // Add Address
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipientName || !phoneNumber || !district || !thana || !addressLine) {
+      toast.error('Incomplete Coordinates', { description: 'Please complete all address coordinates.' });
+      return;
+    }
+
+    setSavingAddress(true);
+    try {
+      const res = await fetch('/api/auth/addresses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: addressTitle,
+          recipientName,
+          phoneNumber,
+          district,
+          thana,
+          addressLine,
+          isDefault,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to save address');
+
+      toast.success('Coordinates Calibrated', { description: 'New delivery address stored.' });
+      setShowAddressModal(false);
+      setThana('');
+      setAddressLine('');
+      await refreshProfile();
+    } catch (err: any) {
+      toast.error('Failed to Save', { description: err.message });
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  // Delete Address
+  const handleDeleteAddress = async (id: string) => {
+    try {
+      const res = await fetch(`/api/auth/addresses/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        toast.info('Address Erased');
+        await refreshProfile();
+      }
+    } catch {
+      toast.error('Failed to remove address');
+    }
+  };
+
+  // Change Password
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error('Weak Security Key', { description: 'Password must be at least 6 characters.' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Mismatch', { description: 'New passwords do not match.' });
+      return;
+    }
+
+    setChangingPass(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update password');
+
+      toast.success('Access Key Recalibrated', { description: 'Password successfully changed.' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      toast.error('Update Failed', { description: err.message });
+    } finally {
+      setChangingPass(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <span className="telemetry-tag border-yellow-500/40 text-yellow-500">PENDING CONFIRMATION</span>;
+      case 'PROCESSING':
+        return <span className="telemetry-tag border-blue-500/40 text-blue-400">IN ASSEMBLY</span>;
+      case 'SHIPPED':
+        return <span className="telemetry-tag border-purple-500/40 text-purple-400">DISPATCHED IN TRANSIT</span>;
+      case 'DELIVERED':
+        return <span className="telemetry-tag border-green-500/40 text-green-400">MISSION COMPLETED</span>;
+      case 'CANCELLED':
+        return <span className="telemetry-tag border-red-500/40 text-red-400">ABORTED</span>;
+      default:
+        return <span className="telemetry-tag">{status}</span>;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
+      <StorefrontNavbar onOpenAuth={() => {}} />
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
+        {/* Pilot Telemetry Profile Banner */}
+        <div className="chassis-card p-6 sm:p-8 mb-8 border-nitro-amber/30 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-nitro-amber/10 to-transparent pointer-events-none rounded-bl-full" />
+          
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
+            <div className="relative">
+              <img
+                src={user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
+                alt={user?.name || 'Pilot'}
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-nitro-amber object-cover shadow-nitro-sm"
+              />
+              <div className="absolute -bottom-1 -right-1 bg-carbon-slate border border-nitro-amber/50 rounded-full p-1 text-nitro-amber" title="Verified Pilot">
+                <Shield className="w-4 h-4" />
+              </div>
+            </div>
+
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+                <h1 className="font-orbitron font-black text-2xl text-machined-titanium">
+                  {user?.name || 'ROVIN Pilot'}
+                </h1>
+                <span className="telemetry-tag border-nitro-amber/40 text-nitro-amber">
+                  {user?.role} PILOT
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-machined-silver font-mono mt-2">
+                <span className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-nitro-amber" />
+                  {user?.email}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-nitro-amber" />
+                  {user?.phone}
+                </span>
+                {user?.gender && (
+                  <span className="text-machined-dim uppercase tracking-wider">
+                    GENDER: {user.gender}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={logout}
+              className="outline-btn text-xs py-2 px-4 flex items-center gap-2 border-red-500/40 text-red-400 hover:bg-red-500/10"
+            >
+              <LogOut className="w-3.5 h-3.5" /> Sign Out
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-fastener-border mb-8 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+              activeTab === 'orders'
+                ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
+                : 'border-transparent text-machined-dim hover:text-machined-titanium'
+            }`}
+          >
+            <Package className="w-4 h-4" /> Orders & Mission Telemetry ({orders.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('addresses')}
+            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+              activeTab === 'addresses'
+                ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
+                : 'border-transparent text-machined-dim hover:text-machined-titanium'
+            }`}
+          >
+            <MapPin className="w-4 h-4" /> Delivery Addresses ({user?.addresses?.length || 0})
+          </button>
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`flex items-center gap-2 py-3 px-6 font-orbitron font-bold text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+              activeTab === 'security'
+                ? 'border-nitro-amber text-nitro-amber bg-nitro-amber/5'
+                : 'border-transparent text-machined-dim hover:text-machined-titanium'
+            }`}
+          >
+            <Lock className="w-4 h-4" /> Security & Key
+          </button>
+        </div>
+
+        {/* TAB 1: MISSION ORDERS */}
+        {activeTab === 'orders' && (
+          <div>
+            {loadingOrders ? (
+              <div className="chassis-card p-12 text-center text-machined-dim font-mono text-sm">
+                Accessing encrypted mission logs...
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="chassis-card p-12 text-center">
+                <Package className="w-12 h-12 text-machined-dim mx-auto mb-3 opacity-50" />
+                <h3 className="font-orbitron font-bold text-lg text-machined-titanium mb-2">
+                  No Active Missions Found
+                </h3>
+                <p className="text-xs text-machined-muted max-w-sm mx-auto mb-6">
+                  You have not deployed any precision RC drift units or hardware orders yet.
+                </p>
+                <Link to="/products" className="nitro-btn inline-flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4" /> Explore Equipment Hangar
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((ord) => (
+                  <div key={ord.id} className="chassis-card p-5 hover:border-nitro-amber/40 transition-all">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-fastener-border pb-4 mb-4">
+                      <div>
+                        <span className="font-mono text-xs text-nitro-amber font-bold block">
+                          {ord.orderNumber}
+                        </span>
+                        <span className="text-[11px] font-mono text-machined-dim">
+                          Ordered: {new Date(ord.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {getStatusBadge(ord.orderStatus)}
+                        <span className="font-orbitron font-black text-sm text-machined-titanium">
+                          ৳{ord.totalAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Consignment Live Tracking Banner if available */}
+                    {ord.consignments && ord.consignments.length > 0 && (
+                      <div className="bg-carbon-elevated border border-nitro-amber/30 rounded p-3 mb-4 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-nitro-amber animate-pulse" />
+                          <span className="font-mono text-xs text-machined-titanium">
+                            Courier Dispatch: <strong className="text-nitro-amber uppercase">{ord.consignments[0].courier}</strong>
+                          </span>
+                          <span className="telemetry-tag text-[10px]">
+                            TRACKING: {ord.consignments[0].trackingCode || ord.consignments[0].consignmentId}
+                          </span>
+                        </div>
+                        <span className="font-mono text-xs text-machined-silver">
+                          Status: <span className="text-nitro-amber font-bold">{ord.consignments[0].status}</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Items List */}
+                    <div className="space-y-3">
+                      {ord.orderItems.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between text-xs font-mono">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={item.product?.images?.[0] || '/brand/rovin-icon.svg'}
+                              alt={item.product?.title || 'Gear'}
+                              className="w-10 h-10 rounded object-cover border border-fastener-border"
+                            />
+                            <div>
+                              <Link
+                                to={`/product/${item.product?.slug}`}
+                                className="font-bold text-machined-titanium hover:text-nitro-amber transition-colors line-clamp-1"
+                              >
+                                {item.product?.title}
+                              </Link>
+                              <div className="text-[11px] text-machined-dim">
+                                Qty: {item.quantity} {item.chosenColor ? `• Color: ${item.chosenColor}` : ''}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-orbitron text-machined-silver font-semibold">
+                            ৳{item.totalPrice.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Delivery Destination */}
+                    <div className="mt-4 pt-3 border-t border-fastener-border flex flex-wrap items-center justify-between text-[11px] text-machined-dim font-mono">
+                      <span>
+                        Destination: {ord.deliveryAddress}, {ord.thana}, {ord.district}
+                      </span>
+                      <span>
+                        Payment: {ord.paymentMethod} ({ord.paymentStatus})
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: ADDRESS MATRIX */}
+        {activeTab === 'addresses' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-orbitron font-bold text-base text-machined-titanium">
+                  Saved Dispatch Addresses
+                </h3>
+                <p className="text-xs text-machined-dim font-mono">
+                  Coordinates preloaded automatically during 1-page checkout
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAddressModal(true)}
+                className="nitro-btn text-xs py-2 px-4 flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add New Coordinates
+              </button>
+            </div>
+
+            {(!user?.addresses || user.addresses.length === 0) ? (
+              <div className="chassis-card p-10 text-center">
+                <MapPin className="w-10 h-10 text-machined-dim mx-auto mb-2 opacity-50" />
+                <p className="text-xs text-machined-muted mb-4 font-mono">
+                  No default delivery coordinates logged yet.
+                </p>
+                <button
+                  onClick={() => setShowAddressModal(true)}
+                  className="outline-btn text-xs py-2 px-4"
+                >
+                  Calibrate First Address
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {user.addresses.map((addr) => (
+                  <div
+                    key={addr.id}
+                    className={`chassis-card p-5 relative ${
+                      addr.isDefault ? 'border-nitro-amber shadow-nitro-sm' : ''
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-orbitron font-bold text-xs uppercase text-machined-titanium">
+                          {addr.title}
+                        </span>
+                        {addr.isDefault && (
+                          <span className="telemetry-tag border-nitro-amber text-nitro-amber text-[9px]">
+                            DEFAULT
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAddress(addr.id)}
+                        className="text-machined-dim hover:text-red-400 p-1"
+                        title="Delete Address"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="font-mono text-xs text-machined-silver space-y-1">
+                      <p className="font-bold text-machined-titanium">{addr.recipientName}</p>
+                      <p>{addr.phoneNumber}</p>
+                      <p className="text-machined-dim">{addr.addressLine}</p>
+                      <p className="text-nitro-amber font-semibold">{addr.thana}, {addr.district}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: SECURITY & KEY */}
+        {activeTab === 'security' && (
+          <div className="max-w-md">
+            <div className="chassis-card p-6">
+              <h3 className="font-orbitron font-bold text-base text-machined-titanium mb-1">
+                Recalibrate Security Key
+              </h3>
+              <p className="text-xs text-machined-dim font-mono mb-6">
+                Update the password guarding your ROVIN account.
+              </p>
+
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
+                    New Security Key (Min 6 chars)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
+                    Confirm New Security Key
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2.5 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={changingPass}
+                  className="nitro-btn w-full text-xs py-2.5 mt-2"
+                >
+                  {changingPass ? 'Updating Key...' : 'Update Password'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Address Calibration Modal */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-50 bg-pitch-obsidian/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="chassis-card max-w-md w-full p-6 border-nitro-amber/50 relative">
+            <h3 className="font-orbitron font-bold text-base text-machined-titanium mb-4">
+              Calibrate Delivery Address
+            </h3>
+
+            <form onSubmit={handleSaveAddress} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                  Location Tag (e.g. Home, Drift Track, Lab)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addressTitle}
+                  onChange={(e) => setAddressTitle(e.target.value)}
+                  className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                    Recipient Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                    BD Phone (01XXXXXXXXX)
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                    District
+                  </label>
+                  <select
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                  >
+                    {BD_DISTRICTS.map((d) => (
+                      <option key={d} value={d} className="bg-carbon-card text-machined-titanium">{d}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                    Thana / Upazila
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={thana}
+                    onChange={(e) => setThana(e.target.value)}
+                    className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                    placeholder="e.g. Uttara / Dhanmondi"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase text-machined-muted mb-1">
+                  Full House / Road / Area Details
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={addressLine}
+                  onChange={(e) => setAddressLine(e.target.value)}
+                  className="w-full bg-carbon-elevated border border-fastener-border rounded p-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
+                  placeholder="House 12, Road 4, Sector 7..."
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="defaultAddress"
+                  checked={isDefault}
+                  onChange={(e) => setIsDefault(e.target.checked)}
+                  className="rounded border-fastener-border text-nitro-amber focus:ring-nitro-amber bg-carbon-elevated"
+                />
+                <label htmlFor="defaultAddress" className="text-xs font-mono text-machined-silver cursor-pointer">
+                  Set as default delivery coordinates
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-fastener-border">
+                <button
+                  type="button"
+                  onClick={() => setShowAddressModal(false)}
+                  className="outline-btn text-xs py-2 px-4"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingAddress}
+                  className="nitro-btn text-xs py-2 px-5"
+                >
+                  {savingAddress ? 'Saving...' : 'Confirm Address'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <footer className="border-t border-fastener-border py-6 px-6 text-center text-xs text-machined-dim bg-pitch-deep">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="font-mono">ROVIN BANGLADESH &bull; PILOT COMMAND TELEMETRY</span>
+          <div className="flex gap-4 font-mono text-[11px]">
+            <Link to="/about" className="hover:text-nitro-amber">About</Link>
+            <Link to="/contact" className="hover:text-nitro-amber">Contact</Link>
+            <Link to="/privacy-policy" className="hover:text-nitro-amber">Privacy</Link>
+          </div>
+        </div>
+      </footer>
+
+      <MobileBottomNav onOpenAuth={() => {}} />
+    </div>
+  );
+};

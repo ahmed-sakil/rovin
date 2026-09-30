@@ -1,4 +1,14 @@
 /** @type {import('tailwindcss').Config} */
+
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgb(var(${variableName}) / ${opacityValue})`;
+    }
+    return `rgb(var(${variableName}))`;
+  };
+}
+
 export default {
   content: [
     "./index.html",
@@ -10,35 +20,35 @@ export default {
       colors: {
         // 1. Primary Accent: Brushless motor energy, nitro headers
         nitro: {
-          DEFAULT: '#FFC837',
-          amber: '#FFC837',
-          orange: '#ED6A00',
-          glow: 'rgba(255, 200, 55, 0.15)',
+          DEFAULT: withOpacity('--color-nitro-amber'),
+          amber: withOpacity('--color-nitro-amber'),
+          orange: withOpacity('--color-nitro-orange'),
+          glow: 'rgba(var(--color-nitro-glow), 0.15)',
         },
-        // 2. Primary Dark Surface: Matte carbon fiber aesthetic
+        // 2. Primary Surface: Matte carbon fiber (dark) or crisp titanium card (light)
         carbon: {
-          slate: '#0E0F14',
-          card: '#14161F',
-          elevated: '#1A1D29',
-          hover: '#222636',
+          slate: withOpacity('--color-carbon-slate'),
+          card: withOpacity('--color-carbon-card'),
+          elevated: withOpacity('--color-carbon-elevated'),
+          hover: withOpacity('--color-carbon-hover'),
         },
-        // 3. Deep Background: High-contrast chassis backplates
+        // 3. Deep Background: Obsidian (dark) or Crisp Canvas (light)
         pitch: {
-          obsidian: '#07070A',
-          deep: '#040406',
+          obsidian: withOpacity('--color-pitch-obsidian'),
+          deep: withOpacity('--color-pitch-deep'),
         },
-        // 4. Primary Typography & Emblem: Crisp surgical readability
+        // 4. Primary Typography: Crisp readability
         machined: {
-          titanium: '#FFFFFF',
-          silver: '#E2E8F0',
-          muted: '#94A3B8',
-          dim: '#64748B',
+          titanium: withOpacity('--color-machined-titanium'),
+          silver: withOpacity('--color-machined-silver'),
+          muted: withOpacity('--color-machined-muted'),
+          dim: withOpacity('--color-machined-dim'),
         },
         // 5. Hardware Details: Rivets, borders, dividers, telemetry marks
         fastener: {
-          gunmetal: '#3A4054',
-          border: '#242836',
-          dark: '#1C202C',
+          gunmetal: withOpacity('--color-fastener-gunmetal'),
+          border: withOpacity('--color-fastener-border'),
+          dark: withOpacity('--color-fastener-dark'),
         }
       },
       fontFamily: {
@@ -46,9 +56,9 @@ export default {
         inter: ['Inter', 'sans-serif'],
       },
       boxShadow: {
-        'nitro': '0 0 20px rgba(255, 200, 55, 0.25)',
-        'nitro-sm': '0 0 10px rgba(255, 200, 55, 0.2)',
-        'chassis': '0 8px 32px 0 rgba(0, 0, 0, 0.7)',
+        'nitro': '0 0 20px rgba(var(--color-nitro-amber), 0.25)',
+        'nitro-sm': '0 0 10px rgba(var(--color-nitro-amber), 0.2)',
+        'chassis': '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
       }
     },
   },

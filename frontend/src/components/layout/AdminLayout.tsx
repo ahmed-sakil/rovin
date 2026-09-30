@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../brand/BrandLogo';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import {
   LayoutDashboard,
   Boxes,
@@ -77,9 +79,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <div>
           <div className="p-5 border-b border-fastener-border">
             <Link to="/admin" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded bg-carbon-card border border-nitro-amber/60 flex items-center justify-center text-nitro-amber font-orbitron font-black text-xl shadow-nitro-sm">
-                R
-              </div>
+              <BrandLogo variant="icon" size="md" />
               <div>
                 <span className="font-orbitron font-black text-lg tracking-[0.2em] text-machined-titanium block leading-none">
                   ROVIN
@@ -199,11 +199,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             </p>
           </div>
 
-          {action && (
-            <div className="flex items-center gap-3">
-              {action}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {action && (
+              <div className="flex items-center gap-3">
+                {action}
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Dynamic Page Content */}

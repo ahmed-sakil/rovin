@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../brand/BrandLogo';
 import { X, Lock, Mail, Phone, User, KeyRound, Sparkles, AlertCircle, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -71,7 +72,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
         {/* Header telemetry ribbon */}
         <div className="bg-carbon-slate px-6 py-4 border-b border-fastener-border flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber shadow-nitro-sm"></span>
+            <BrandLogo variant="icon" size="sm" />
             <span className="font-orbitron font-bold text-sm tracking-wider text-machined-titanium uppercase">
               {mode === 'login' ? 'PILOT AUTHENTICATION' : 'CREW REGISTRATION'}
             </span>

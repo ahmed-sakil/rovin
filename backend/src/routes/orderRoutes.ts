@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createOrder,
   getOrder,
+  getMyOrders,
   getAllOrders,
   updateOrderStatus,
   validateCoupon,
@@ -13,8 +14,11 @@ import { authenticateUser, requireRole } from '../middlewares/auth.js';
 
 const router = Router();
 
-// Public: Create order & Validate Coupon & Track order
-router.post('/checkout', createOrder);
+// Customer Endpoints (Guarded): Create order & View Personal Orders
+router.post('/checkout', authenticateUser, createOrder);
+router.get('/my-orders', authenticateUser, getMyOrders);
+
+// Public Endpoints: Validate Coupon & Track order
 router.post('/validate-coupon', validateCoupon);
 router.get('/track/:orderNumberOrId', getOrder);
 

@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { z } from 'zod';
 import { BD_PHONE_REGEX } from '../utils/validators.js';
 import { OrderStatus, PaymentMethod } from '@prisma/client';
+import { AuthenticatedRequest } from '../middlewares/auth.js';
 
 const CreateOrderSchema = z.object({
   customerName: z.string().min(2, 'Name is required'),
@@ -23,8 +24,16 @@ const CreateOrderSchema = z.object({
   ).min(1, 'Order must contain at least 1 item'),
 });
 
-export async function createOrder(req: Request, res: Response): Promise<void> {
+export async function createOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    if (!req.user?.id) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required. Please log in or create an account to place an order.',
+      });
+      return;
+    }
+
     const parsed = CreateOrderSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ success: false, errors: parsed.error.flatten().fieldErrors });
@@ -137,11 +146,14 @@ export async function createOrder(req: Request, res: Response): Promise<void> {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `ROV-${dateStr}-${randomSuffix}`;
 
+    const currentUserId = req.user.id;
+
     // Atomic transaction: Create Order + OrderItems + Decrement Stock
     const newOrder = await prisma.$transaction(async (tx) => {
       const created = await tx.order.create({
         data: {
           orderNumber,
+          userId: currentUserId,
           customerName,
           customerPhone,
           customerEmail: customerEmail || null,
@@ -480,3 +492,32 @@ export async function markLabelPrinted(req: Request, res: Response): Promise<voi
     res.status(500).json({ success: false, message: 'Failed to record label print status' });
   }
 }
+
+export async function getMyOrders(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user?.id) {
+      res.status(401).json({ success: false, message: 'Authentication required' });
+      return;
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { userId: req.user.id },
+      include: {
+        orderItems: {
+          include: { product: true },
+        },
+        consignments: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.status(200).json({ success: true, orders });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve personal orders',
+      error: error.message,
+    });
+  }
+}
+

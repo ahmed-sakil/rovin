@@ -4,34 +4,80 @@
 
 @layer base {
   :root {
-    --color-nitro-amber: #FFC837;
-    --color-nitro-orange: #ED6A00;
-    --color-carbon-slate: #0E0F14;
-    --color-pitch-obsidian: #07070A;
-    --color-machined-titanium: #FFFFFF;
-    --color-fastener-gunmetal: #3A4054;
+    /* LIGHT THEME PALETTE */
+    --color-nitro-amber: 217 119 6;       /* Warm amber #D97706 */
+    --color-nitro-orange: 180 83 9;       /* Deep amber #B45309 */
+    --color-nitro-glow: 217 119 6;
+
+    --color-carbon-slate: 255 255 255;    /* #FFFFFF pure clean surface */
+    --color-carbon-card: 255 255 255;     /* #FFFFFF */
+    --color-carbon-elevated: 248 250 252; /* #F8FAFC */
+    --color-carbon-hover: 241 245 249;    /* #F1F5F9 */
+
+    --color-pitch-obsidian: 248 250 252;  /* #F8FAFC canvas background */
+    --color-pitch-deep: 241 245 249;      /* #F1F5F9 */
+
+    --color-machined-titanium: 15 23 42;  /* #0F172A deep dark heading */
+    --color-machined-silver: 51 65 85;    /* #334155 high-contrast text */
+    --color-machined-muted: 100 116 139;  /* #64748B */
+    --color-machined-dim: 148 163 184;    /* #94A3B8 */
+
+    --color-fastener-gunmetal: 148 163 184; /* #94A3B8 */
+    --color-fastener-border: 226 232 240;   /* #E2E8F0 */
+    --color-fastener-dark: 203 213 225;     /* #CBD5E1 */
+  }
+
+  .dark {
+    /* DARK THEME PALETTE (ROVIN Original Tactical Spec) */
+    --color-nitro-amber: 255 200 55;      /* #FFC837 Nitro Amber */
+    --color-nitro-orange: 237 106 0;      /* #ED6A00 */
+    --color-nitro-glow: 255 200 55;
+
+    --color-carbon-slate: 14 15 20;       /* #0E0F14 */
+    --color-carbon-card: 20 22 31;        /* #14161F */
+    --color-carbon-elevated: 26 29 41;    /* #1A1D29 */
+    --color-carbon-hover: 34 38 54;       /* #222636 */
+
+    --color-pitch-obsidian: 7 7 10;       /* #07070A */
+    --color-pitch-deep: 4 4 6;            /* #040406 */
+
+    --color-machined-titanium: 255 255 255; /* #FFFFFF */
+    --color-machined-silver: 226 232 240;   /* #E2E8F0 */
+    --color-machined-muted: 148 163 184;    /* #94A3B8 */
+    --color-machined-dim: 100 116 139;      /* #64748B */
+
+    --color-fastener-gunmetal: 58 64 84;    /* #3A4054 */
+    --color-fastener-border: 36 40 54;      /* #242836 */
+    --color-fastener-dark: 28 32 44;        /* #1C202C */
   }
 
   body {
-    background-color: #07070A;
-    color: #FFFFFF;
+    @apply bg-pitch-obsidian text-machined-titanium transition-colors duration-200;
     overflow-x: hidden;
   }
 }
 
 /* Tactical Telemetry & Industrial Badges */
 .telemetry-tag {
-  @apply font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded border border-fastener-gunmetal/60 bg-carbon-slate/80 text-machined-muted;
+  @apply font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded border border-fastener-border bg-carbon-elevated text-machined-muted;
 }
 
 .chassis-card {
-  @apply bg-carbon-card border border-fastener-border/80 rounded-lg transition-all duration-200 hover:border-nitro-amber/40 hover:shadow-nitro-sm;
+  @apply bg-carbon-card border border-fastener-border rounded-lg transition-all duration-200 hover:border-nitro-amber/50 hover:shadow-nitro-sm;
 }
 
 .nitro-btn {
   @apply inline-flex items-center justify-center font-orbitron font-bold tracking-wider uppercase text-xs px-5 py-2.5 rounded bg-nitro-amber text-pitch-obsidian transition-all duration-150 hover:bg-nitro-orange hover:shadow-nitro active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
 }
 
+.dark .nitro-btn {
+  @apply text-pitch-deep;
+}
+
+.light .nitro-btn {
+  @apply text-white;
+}
+
 .outline-btn {
-  @apply inline-flex items-center justify-center font-orbitron font-semibold tracking-wider uppercase text-xs px-5 py-2.5 rounded border border-fastener-gunmetal bg-carbon-elevated/50 text-machined-silver hover:border-machined-titanium hover:bg-carbon-hover active:scale-[0.98] transition-all;
+  @apply inline-flex items-center justify-center font-orbitron font-semibold tracking-wider uppercase text-xs px-5 py-2.5 rounded border border-fastener-border bg-carbon-elevated text-machined-silver hover:border-machined-titanium hover:bg-carbon-hover active:scale-[0.98] transition-all;
 }
