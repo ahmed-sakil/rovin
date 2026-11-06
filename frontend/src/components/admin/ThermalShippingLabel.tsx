@@ -135,7 +135,7 @@ export const ThermalShippingLabel: React.FC<ThermalShippingLabelProps> = ({
           <div className="text-[10px] font-mono text-gray-600 flex justify-between items-end pt-1">
             <div>
               <span className="font-bold text-black block uppercase">Shipper: ROVIN Bangladesh</span>
-              <span>Uttara Hangar, Sector 7, Dhaka</span>
+              <span>Sector 7, Uttara, Dhaka</span>
               <span className="block">Support: +880 1711-000000</span>
             </div>
             <div className="text-right">

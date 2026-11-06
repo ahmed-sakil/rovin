@@ -247,6 +247,41 @@ export const AdminProducts: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async (id: string, productTitle: string) => {
+    const token = localStorage.getItem('rovin_token');
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete product');
+
+      toast.success('Product Deleted', {
+        description: `"${productTitle}" has been removed from the catalog.`,
+      });
+      fetchData();
+    } catch (err: any) {
+      toast.error('Delete Failed', { description: err.message });
+    }
+  };
+
+  const confirmDeleteProduct = (id: string, productTitle: string) => {
+    toast(`Delete product "${productTitle}"?`, {
+      description: 'This will permanently remove the product from the catalog.',
+      action: {
+        label: 'Delete',
+        onClick: () => handleDeleteProduct(id, productTitle),
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {},
+      },
+    });
+  };
+
   // Filtered Products
   const filteredProducts = products.filter((p) => {
     if (stockFilter === 'low') return p.stockQuantity > 0 && p.stockQuantity <= p.lowStockThreshold;
@@ -257,12 +292,12 @@ export const AdminProducts: React.FC = () => {
 
   return (
     <AdminLayout
-      title="PRODUCT & STOCK LEDGER"
-      comment="Calibrate product specifications, manage inventory levels, and register new SKUs."
+      title="PRODUCTS & INVENTORY"
+      comment="Manage product catalog, inventory stock levels, and pricing."
       action={
         <button onClick={openCreateModal} className="nitro-btn flex items-center gap-2 py-2 px-4 text-xs">
           <Plus className="w-4 h-4" />
-          Add New Product SKU
+          Add New Product
         </button>
       }
     >
@@ -338,7 +373,7 @@ export const AdminProducts: React.FC = () => {
                 <th className="py-3.5 px-4">Product Specs</th>
                 <th className="py-3.5 px-4">Category</th>
                 <th className="py-3.5 px-4">Price (BDT)</th>
-                <th className="py-3.5 px-4 text-center">Stock Telemetry</th>
+                <th className="py-3.5 px-4 text-center">Stock Level</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -475,10 +510,17 @@ export const AdminProducts: React.FC = () => {
                             setIsSpecial(p.isSpecial || false);
                             setModalOpen(true);
                           }}
-                          className="p-1.5 rounded hover:bg-carbon-slate text-machined-dim hover:text-nitro-amber"
-                          title="Edit Specifications"
+                          className="p-1.5 rounded hover:bg-carbon-slate text-machined-dim hover:text-nitro-amber transition-colors"
+                          title="Edit Product"
                         >
                           <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteProduct(p.id, p.title)}
+                          className="p-1.5 rounded hover:bg-carbon-slate text-machined-dim hover:text-red-400 transition-colors"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -498,7 +540,7 @@ export const AdminProducts: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-nitro-amber"></span>
                 <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-                  {editingProduct ? 'Recalibrate Product SKU' : 'Calibrate New Inventory SKU'}
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
                 </h2>
               </div>
               <button onClick={() => setModalOpen(false)} className="text-machined-dim hover:text-machined-titanium">
@@ -790,7 +832,7 @@ export const AdminProducts: React.FC = () => {
                     onChange={(e) => setFeatured(e.target.checked)}
                     className="accent-nitro-amber w-4 h-4 rounded cursor-pointer"
                   />
-                  <span>Featured Flagship</span>
+                  <span>Featured Product</span>
                 </label>
               </div>
 
@@ -807,7 +849,7 @@ export const AdminProducts: React.FC = () => {
                   type="submit"
                   className="nitro-btn text-xs py-2 px-6"
                 >
-                  {editingProduct ? 'Commit Updates' : 'Stock New SKU'}
+                  {editingProduct ? 'Update Product' : 'Add Product'}
                 </button>
               </div>
             </form>

@@ -46,7 +46,7 @@ export const ProductDetail: React.FC = () => {
   const [newReviewComment, setNewReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  usePageTitle(product?.title || 'Product Specifications', 'ROVIN Hangar');
+  usePageTitle(product?.title || 'Product Specifications', 'ROVIN');
 
   const fetchReviews = async (productIdOrSlug: string) => {
     setLoadingReviews(true);
@@ -119,8 +119,8 @@ export const ProductDetail: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to submit review');
 
-      toast.success('Field Report Transmitted', {
-        description: 'Thank you for calibrating telemetry for the pilot crew!',
+      toast.success('Review Submitted', {
+        description: 'Thank you for sharing your feedback!',
       });
       setShowReviewModal(false);
       setNewReviewTitle('');
@@ -139,7 +139,7 @@ export const ProductDetail: React.FC = () => {
       <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
         <StorefrontNavbar />
         <main className="max-w-4xl mx-auto px-6 py-20 text-center flex-1 text-xs font-mono text-machined-muted">
-          CALIBRATING PRODUCT TELEMETRY...
+          Loading product details...
         </main>
         <MobileBottomNav />
       </div>
@@ -151,7 +151,7 @@ export const ProductDetail: React.FC = () => {
       <div className="min-h-screen bg-pitch-obsidian flex flex-col justify-between pb-16 md:pb-0">
         <StorefrontNavbar />
         <main className="max-w-4xl mx-auto px-6 py-20 text-center flex-1">
-          <h2 className="font-orbitron font-bold text-xl text-machined-titanium mb-4">PRODUCT NOT LOCATED</h2>
+          <h2 className="font-orbitron font-bold text-xl text-machined-titanium mb-4">Product Not Found</h2>
           <Link to="/products" className="nitro-btn text-xs py-2 px-4">Return to Catalog</Link>
         </main>
         <MobileBottomNav />
@@ -459,13 +459,13 @@ export const ProductDetail: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <img
                         src={rev.user?.profileImageUrl || '/assets/avatars/avatar-m1.svg'}
-                        alt={rev.user?.name || 'Pilot'}
+                        alt={rev.user?.name || 'Customer'}
                         className="w-8 h-8 rounded-full border border-nitro-amber/50 object-cover"
                       />
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-orbitron font-bold text-xs text-machined-titanium">
-                            {rev.user?.name || 'Pilot'}
+                            {rev.user?.name || 'Customer'}
                           </span>
                           {rev.isVerifiedPurchase && (
                             <span className="telemetry-tag border-emerald-500/40 text-emerald-400 text-[9px] py-0.5 px-1.5 flex items-center gap-1">

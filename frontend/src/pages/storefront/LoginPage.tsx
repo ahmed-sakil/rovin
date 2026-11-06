@@ -128,7 +128,7 @@ export const LoginPage: React.FC = () => {
 
         <div className="text-center mt-6 text-[11px] font-mono text-machined-dim">
           <Link to="/" className="hover:text-nitro-amber transition-colors">
-            &larr; Return to Equipment Hangar
+            &larr; Back to Home
           </Link>
         </div>
       </div>

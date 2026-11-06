@@ -272,7 +272,7 @@ export const CustomerAccount: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to update password');
 
-      toast.success('Access Key Recalibrated', { description: 'Password successfully changed.' });
+      toast.success('Password Updated', { description: 'Your password has been successfully changed.' });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -479,10 +479,10 @@ export const CustomerAccount: React.FC = () => {
                   <Lock className="w-5 h-5 text-nitro-amber" />
                 </div>
                 <h3 className="font-orbitron font-bold text-base text-machined-titanium mb-1">
-                  Recalibrate Security Key
+                  Change Password
                 </h3>
                 <p className="text-xs text-machined-dim font-mono">
-                  Update the password guarding your ROVIN account.
+                  Update your ROVIN account password.
                 </p>
               </div>
 
@@ -503,7 +503,7 @@ export const CustomerAccount: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                    New Security Key (Min 6 chars)
+                    New Password (Min 6 chars)
                   </label>
                   <input
                     type="password"
@@ -517,7 +517,7 @@ export const CustomerAccount: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-1">
-                    Confirm New Security Key
+                    Confirm New Password
                   </label>
                   <input
                     type="password"
@@ -548,7 +548,7 @@ export const CustomerAccount: React.FC = () => {
               <div className="flex items-center justify-center gap-2 mb-6 pb-3 border-b border-fastener-border text-center">
                 <UserCheck className="w-5 h-5 text-nitro-amber" />
                 <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-                  Personal Telemetry & Profile Settings
+                  Profile Settings
                 </h2>
               </div>
 
@@ -556,7 +556,7 @@ export const CustomerAccount: React.FC = () => {
                 {/* Avatar Selection Grid */}
                 <div>
                   <label className="block text-xs font-mono uppercase text-machined-muted mb-2">
-                    Select Tactical Avatar
+                    Select Profile Avatar
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-3">
                     {DEFAULT_AVATARS.map((av) => {
@@ -706,7 +706,7 @@ export const CustomerAccount: React.FC = () => {
                     />
                   </div>
                   <p className="text-[10px] font-mono text-machined-dim mt-1">
-                    Contact mission command if you require email re-calibration.
+                    Contact support if you need to update your email address.
                   </p>
                 </div>
 

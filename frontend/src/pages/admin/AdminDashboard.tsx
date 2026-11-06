@@ -45,7 +45,7 @@ interface DashboardStats {
 }
 
 export const AdminDashboard: React.FC = () => {
-  usePageTitle('Admin Command Telemetry', 'Comprehensive e-commerce analytics and inventory ledger');
+  usePageTitle('Admin Dashboard', 'Comprehensive e-commerce analytics and inventory');
   const todayStr = new Date().toISOString().slice(0, 10);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export const AdminDashboard: React.FC = () => {
         }
       }
     } catch {
-      toast.error('Telemetry Sync Error', { description: 'Failed to aggregate dashboard analytics.' });
+      toast.error('Sync Error', { description: 'Failed to load dashboard analytics.' });
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export const AdminDashboard: React.FC = () => {
       if (data.success && data.report) {
         setDailyReport(data.report);
       } else {
-        toast.error('Telemetry Error', { description: data.message || 'Failed to retrieve daily report.' });
+        toast.error('Report Error', { description: data.message || 'Failed to retrieve daily report.' });
       }
     } catch {
       toast.error('Network Error', { description: 'Failed to fetch day metrics.' });
@@ -107,8 +107,8 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <AdminLayout
-      title="COMMAND TELEMETRY DASHBOARD"
-      comment="Real-time multi-channel overview: revenue, inventory health, courier pipeline, and audit logs."
+      title="ADMIN DASHBOARD"
+      comment="Overview of sales revenue, inventory, order fulfillment, and system activity."
       action={
         <button
           onClick={() => {
@@ -119,7 +119,7 @@ export const AdminDashboard: React.FC = () => {
           className="outline-btn flex items-center gap-2 py-2 px-3 text-xs"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading || reportLoading ? 'animate-spin' : ''}`} />
-          Recalibrate Telemetry
+          Refresh Dashboard
         </button>
       }
     >
@@ -131,7 +131,7 @@ export const AdminDashboard: React.FC = () => {
             <div>
               <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-nitro-amber" />
-                Daily Performance Telemetry
+                Daily Performance Report
               </h2>
               <p className="text-[11px] font-mono text-machined-dim mt-0.5">
                 {selectedDate === todayStr ? "Active operations for today (Real-time)" : `Historical operations for ${selectedDate}`}
@@ -159,7 +159,7 @@ export const AdminDashboard: React.FC = () => {
                   if (e.target.value) handleDateChange(e.target.value);
                 }}
                 className="bg-transparent text-xs text-nitro-amber font-mono font-bold outline-none cursor-pointer"
-                title="Select date for operational telemetry"
+                title="Select date for daily report"
               />
             </div>
           </div>
@@ -308,7 +308,7 @@ export const AdminDashboard: React.FC = () => {
                 </h3>
               </div>
               <p className="text-xs text-machined-dim font-mono mt-0.5">
-                Dynamic revenue curve with 7-day telemetry tracking
+                7-day revenue trend
               </p>
             </div>
             <span className="telemetry-tag text-emerald-400 border-emerald-500/40">
@@ -524,7 +524,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider flex items-center gap-2">
               <Layers className="w-4 h-4 text-nitro-amber" />
-              Taxonomy Stocking
+              Products by Category
             </h3>
             <span className="telemetry-tag border-fastener-border">CATEGORIES</span>
           </div>
@@ -547,12 +547,12 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Live Security & Telemetry Audit */}
+        {/* Live Security & Activity Audit */}
         <div className="chassis-card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider flex items-center gap-2">
               <Activity className="w-4 h-4 text-nitro-amber" />
-              Live Security Telemetry
+              Recent Activity Logs
             </h3>
             <span className="telemetry-tag border-emerald-500/40 text-emerald-400">AUDIT</span>
           </div>
@@ -576,7 +576,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-machined-dim font-mono">No telemetry events logged yet.</p>
+              <p className="text-xs text-machined-dim font-mono">No activity logged yet.</p>
             )}
           </div>
         </div>

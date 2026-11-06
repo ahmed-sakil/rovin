@@ -131,11 +131,11 @@ export const ProductCatalog: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <BrandLogo variant="icon" size="sm" />
               <h1 className="font-orbitron font-black text-2xl sm:text-3xl text-machined-titanium uppercase">
-                ALL EQUIPMENT CATALOG
+                ALL PRODUCTS
               </h1>
             </div>
             <p className="text-xs text-machined-muted font-mono mt-1">
-              Browse the complete ROVIN precision RC hangar, crawlers, desk sculptures, and telemetry accessories.
+              Browse our high-performance RC drift cars, crawlers, and accessories.
             </p>
           </div>
 
@@ -147,7 +147,7 @@ export const ProductCatalog: React.FC = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search gear, scale, motor..."
+                placeholder="Search products, model, scale..."
                 className="w-full bg-carbon-card border border-fastener-border rounded pl-9 pr-3 py-2 text-xs text-machined-titanium focus:outline-none focus:border-nitro-amber font-mono"
               />
             </div>
@@ -262,16 +262,16 @@ export const ProductCatalog: React.FC = () => {
         {/* Products Grid */}
         {loading ? (
           <div className="chassis-card min-h-[380px] flex items-center justify-center p-16 text-center text-machined-dim font-mono text-sm">
-            Scanning Hangar Inventory Telemetry...
+            Loading products...
           </div>
         ) : products.length === 0 ? (
           <div className="chassis-card p-16 text-center">
             <ShoppingBag className="w-12 h-12 text-machined-dim mx-auto mb-3 opacity-50" />
             <h3 className="font-orbitron font-bold text-base text-machined-titanium uppercase mb-1">
-              No Equipment Matches Found
+              No Products Found
             </h3>
             <p className="text-xs text-machined-muted font-mono mb-6">
-              Try adjusting your price parameters, search terms, or category filters.
+              Try adjusting your search terms, price range, or category filters.
             </p>
             <button
               onClick={handleResetFilters}

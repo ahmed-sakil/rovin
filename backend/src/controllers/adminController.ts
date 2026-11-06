@@ -109,7 +109,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     });
   } catch (error: any) {
     console.error('[getDashboardStats Error]:', error);
-    res.status(500).json({ success: false, message: 'Failed to aggregate dashboard telemetry.' });
+    res.status(500).json({ success: false, message: 'Failed to aggregate dashboard analytics.' });
   }
 }
 
@@ -125,6 +125,8 @@ export async function getSettings(req: Request, res: Response): Promise<void> {
         freeShippingThreshold: 5000,
         bkashMerchantNumber: '01711000000',
         nagadMerchantNumber: '01711000000',
+        fontHeading: 'Plus Jakarta Sans',
+        fontBody: 'Inter',
       },
     });
     res.status(200).json({ success: true, settings });
@@ -142,6 +144,8 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       bkashMerchantNumber,
       nagadMerchantNumber,
       maintenanceMode,
+      fontHeading,
+      fontBody,
     } = req.body;
 
     const updated = await prisma.systemSettings.upsert({
@@ -153,6 +157,8 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
         bkashMerchantNumber: bkashMerchantNumber || null,
         nagadMerchantNumber: nagadMerchantNumber || null,
         maintenanceMode: Boolean(maintenanceMode),
+        ...(fontHeading ? { fontHeading: String(fontHeading) } : {}),
+        ...(fontBody ? { fontBody: String(fontBody) } : {}),
       },
       create: {
         id: 'default',
@@ -162,10 +168,12 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
         bkashMerchantNumber: bkashMerchantNumber || null,
         nagadMerchantNumber: nagadMerchantNumber || null,
         maintenanceMode: Boolean(maintenanceMode),
+        fontHeading: fontHeading ? String(fontHeading) : 'Plus Jakarta Sans',
+        fontBody: fontBody ? String(fontBody) : 'Inter',
       },
     });
 
-    res.status(200).json({ success: true, settings: updated, message: 'Delivery charges & settings updated.' });
+    res.status(200).json({ success: true, settings: updated, message: 'Settings updated successfully.' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: 'Failed to save settings' });
   }
@@ -263,12 +271,12 @@ export async function banUser(req: AuthenticatedRequest, res: Response): Promise
 
     const targetUser = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!targetUser) {
-      res.status(404).json({ success: false, message: 'Pilot not found in registry.' });
+      res.status(404).json({ success: false, message: 'User not found.' });
       return;
     }
 
     if (targetUser.role === 'ADMIN' && req.user?.id !== targetUser.id) {
-      res.status(403).json({ success: false, message: 'Cannot ban an administrative officer.' });
+      res.status(403).json({ success: false, message: 'Cannot ban an admin account.' });
       return;
     }
 
@@ -305,11 +313,11 @@ export async function banUser(req: AuthenticatedRequest, res: Response): Promise
 
     res.status(200).json({
       success: true,
-      message: `Pilot ${targetUser.name} has been suspended.`,
+      message: `User ${targetUser.name} has been suspended.`,
       user: updated,
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: 'Failed to execute suspension protocol' });
+    res.status(500).json({ success: false, message: 'Failed to suspend user' });
   }
 }
 
@@ -319,7 +327,7 @@ export async function unbanUser(req: AuthenticatedRequest, res: Response): Promi
 
     const targetUser = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!targetUser) {
-      res.status(404).json({ success: false, message: 'Pilot not found.' });
+      res.status(404).json({ success: false, message: 'User not found.' });
       return;
     }
 
@@ -348,7 +356,7 @@ export async function unbanUser(req: AuthenticatedRequest, res: Response): Promi
 
     res.status(200).json({
       success: true,
-      message: `Suspension lifted for pilot ${targetUser.name}.`,
+      message: `Suspension lifted for user ${targetUser.name}.`,
       user: updated,
     });
   } catch (error: any) {
@@ -363,7 +371,7 @@ export async function punishUser(req: AuthenticatedRequest, res: Response): Prom
 
     const targetUser = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!targetUser) {
-      res.status(404).json({ success: false, message: 'Pilot not found.' });
+      res.status(404).json({ success: false, message: 'User not found.' });
       return;
     }
 
@@ -372,10 +380,10 @@ export async function punishUser(req: AuthenticatedRequest, res: Response): Prom
     let banReason = targetUser.banReason;
     let banExpiresAt = targetUser.banExpiresAt;
 
-    // Automated Disciplinary Rule: 3 strikes triggers automated 7-day suspension
+    // Automated Warning Rule: 3 warnings triggers automated 7-day suspension
     if (newStrikeCount >= 3) {
       autoBanned = true;
-      banReason = 'Automated 7-Day Suspension: Threshold of 3 Disciplinary Strikes Exceeded';
+      banReason = 'Automated 7-Day Suspension: User reached 3 account warnings';
       banExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     }
 
@@ -399,7 +407,7 @@ export async function punishUser(req: AuthenticatedRequest, res: Response): Prom
         metadata: {
           adminId: req.user?.id,
           strikeCount: newStrikeCount,
-          reason: strikeReason || 'Disciplinary violation (Fake COD / Spam)',
+          reason: strikeReason || 'Account warning (Fake COD / Spam)',
           autoBanned,
         },
       },
@@ -408,13 +416,13 @@ export async function punishUser(req: AuthenticatedRequest, res: Response): Prom
     res.status(200).json({
       success: true,
       message: autoBanned
-        ? `Pilot received strike #${newStrikeCount} and has been AUTO-SUSPENDED for 7 days!`
-        : `Disciplinary strike #${newStrikeCount} recorded for ${targetUser.name}.`,
+        ? `User received warning #${newStrikeCount} and has been automatically suspended for 7 days.`
+        : `Warning #${newStrikeCount} issued to ${targetUser.name}.`,
       user: updated,
       autoBanned,
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: 'Failed to issue disciplinary strike' });
+    res.status(500).json({ success: false, message: 'Failed to issue warning' });
   }
 }
 

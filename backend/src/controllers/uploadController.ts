@@ -30,7 +30,7 @@ export async function uploadSingleFile(req: Request, res: Response): Promise<voi
         height: uploaded.height,
         publicId: uploaded.publicId,
       },
-      message: 'File processed and telemetry extracted.',
+      message: 'File uploaded successfully.',
     });
   } catch (error: any) {
     console.error('[uploadSingleFile Error]:', error);

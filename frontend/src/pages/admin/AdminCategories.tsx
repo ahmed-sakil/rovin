@@ -177,15 +177,15 @@ export const AdminCategories: React.FC = () => {
 
   return (
     <AdminLayout
-      title="DYNAMIC TAXONOMY & CATEGORIES"
-      comment="Non-hardcoded category architecture with subcategories, metadata, and product counts."
+      title="CATEGORIES & SUBCATEGORIES"
+      comment="Manage store categories, subcategories, and catalog structure."
       action={
         <button
           onClick={() => setCatModalOpen(true)}
           className="nitro-btn flex items-center gap-2 py-2 px-4 text-xs"
         >
           <Plus className="w-4 h-4" />
-          Add Root Category
+          Add Category
         </button>
       }
     >
@@ -233,7 +233,7 @@ export const AdminCategories: React.FC = () => {
               <div className="bg-carbon-slate/70 rounded-lg p-3 border border-fastener-border/80">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-mono text-machined-dim uppercase tracking-wider">
-                    Child Subcategories ({cat.subcategories.length})
+                    Subcategories ({cat.subcategories.length})
                   </span>
                   <button
                     onClick={() => {

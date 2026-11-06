@@ -73,7 +73,7 @@ export async function submitContactMessage(req: Request, res: Response): Promise
 
     res.status(201).json({
       success: true,
-      message: 'Transmission received. Our command team will review your inquiry shortly.',
+      message: 'Message received. Our team will review your inquiry shortly.',
       id: record.id,
     });
   } catch (error: any) {

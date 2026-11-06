@@ -48,7 +48,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-nitro-amber" />
             <h2 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-              Filter Equipment Hangar
+              Filter Products
             </h2>
           </div>
           <button
@@ -160,7 +160,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           {/* Sort Order */}
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-machined-muted mb-2">
-              Telemetry Sort Order
+              Sort Order
             </label>
             <div className="grid grid-cols-2 gap-2 font-mono text-xs">
               {[
@@ -225,7 +225,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             onClick={onClose}
             className="nitro-btn text-xs py-2.5 px-6"
           >
-            Apply ({totalResults} Units Available)
+            Apply ({totalResults} Products)
           </button>
         </div>
       </div>

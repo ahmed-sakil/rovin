@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { FontProvider } from './context/FontContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -49,8 +50,9 @@ function ScrollToTop() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <CartProvider>
+      <FontProvider>
+        <AuthProvider>
+          <CartProvider>
           <ScrollToTop />
           <div className="page-transition w-full min-h-screen flex flex-col justify-between">
             <Routes>
@@ -89,6 +91,7 @@ export default function App() {
           </div>
         </CartProvider>
       </AuthProvider>
+      </FontProvider>
     </ThemeProvider>
   );
 }

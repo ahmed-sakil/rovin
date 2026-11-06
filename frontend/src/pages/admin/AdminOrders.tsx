@@ -148,13 +148,13 @@ export const AdminOrders: React.FC = () => {
         // Third-party API failure! Capture error and give admin manual control
         setApiError(data.error || data.message || 'Third-Party Courier Gateway unreachable.');
         setShowManualOverride(true);
-        toast.error('Third-Party API Error', {
-          description: data.message || 'Courier API encountered a transmission fault. Manual override enabled.',
+        toast.error('Courier Service Error', {
+          description: data.message || 'Courier service did not respond. You can enter tracking details manually.',
         });
         return;
       }
 
-      toast.success('Courier Parcel Dispatched', {
+      toast.success('Order Dispatched to Courier', {
         description: `${dispatchProvider} Consignment: ${data.consignment.consignmentId}`,
       });
 
@@ -255,8 +255,8 @@ export const AdminOrders: React.FC = () => {
 
   return (
     <AdminLayout
-      title="ORDERS & COURIER FULFILLMENT"
-      comment="1-Click courier dispatch to Steadfast & Pathao, emergency manual API override, and 4x6 thermal shipping labels."
+      title="ORDERS & FULFILLMENT"
+      comment="Manage customer orders, courier dispatch, tracking codes, and shipping labels."
       action={
         <button onClick={fetchOrders} className="outline-btn text-xs py-2 px-3 flex items-center gap-1.5">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Orders

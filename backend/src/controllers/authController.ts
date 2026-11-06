@@ -432,7 +432,7 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
 
     res.status(200).json({
       success: true,
-      message: 'Password recalibrated successfully. You may now log in.',
+      message: 'Password updated successfully. You may now log in.',
     });
   } catch (error: any) {
     console.error('[resetPassword Error]:', error);

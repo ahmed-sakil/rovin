@@ -283,10 +283,10 @@ export async function deleteProduct(req: Request, res: Response): Promise<void> 
     await prisma.product.delete({
       where: { id: String(id) },
     });
-    res.status(200).json({ success: true, message: 'Product decommissioned from catalog.' });
+    res.status(200).json({ success: true, message: 'Product deleted successfully.' });
   } catch (error: any) {
     console.error('[deleteProduct Error]:', error);
-    res.status(500).json({ success: false, message: 'Failed to remove product.' });
+    res.status(500).json({ success: false, message: 'Failed to delete product.' });
   }
 }
 
@@ -326,7 +326,7 @@ export async function adjustStock(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       success: true,
       product: updated,
-      message: `Stock recalibrated to ${newQuantity} units.`,
+      message: `Stock updated to ${newQuantity} units.`,
     });
   } catch (error: any) {
     console.error('[adjustStock Error]:', error);

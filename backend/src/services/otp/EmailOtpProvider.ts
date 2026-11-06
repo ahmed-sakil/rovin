@@ -60,7 +60,7 @@ export class EmailOtpProvider implements IOtpProvider {
         <div style="padding: 32px 24px; text-align: center;">
           <h2 style="color: #FFFFFF; font-size: 18px; margin-top: 0;">${actionLabel}</h2>
           <p style="color: #94A3B8; font-size: 14px; line-height: 1.5;">
-            Use the 6-digit calibration code below to proceed. This code is active for <strong>5 minutes</strong>.
+            Use the 6-digit verification code below to proceed. This code is active for <strong>5 minutes</strong>.
           </p>
           <div style="margin: 28px 0;">
             <span style="display: inline-block; background-color: #14161F; border: 1px solid #FFC837; color: #FFC837; font-size: 32px; font-weight: 800; letter-spacing: 8px; padding: 14px 28px; border-radius: 6px; font-family: monospace;">
@@ -68,7 +68,7 @@ export class EmailOtpProvider implements IOtpProvider {
             </span>
           </div>
           <p style="color: #64748B; font-size: 12px; margin-bottom: 0;">
-            If you did not request this security code, please ignore this transmission.
+            If you did not request this security code, please ignore this email.
           </p>
         </div>
         <div style="background-color: #040406; padding: 14px; text-align: center; border-top: 1px solid #242836; font-size: 11px; color: #64748B;">

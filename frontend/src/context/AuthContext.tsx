@@ -80,13 +80,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error('Registration Code Error', { description: data.message || 'Failed to dispatch OTP.' });
+        toast.error('Registration Code Error', { description: data.message || 'Failed to send verification code.' });
         return false;
       }
       toast.success('OTP Sent', { description: data.message });
       return true;
     } catch {
-      toast.error('Network Error', { description: 'Could not connect to authentication gateway.' });
+      toast.error('Network Error', { description: 'Could not connect to server.' });
       return false;
     }
   };
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error('Registration Failed', { description: data.message || 'Invalid registration payload.' });
+        toast.error('Registration Failed', { description: data.message || 'Invalid registration data.' });
         return false;
       }
 
@@ -135,10 +135,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(data.token);
       setUser(data.user);
       localStorage.setItem('rovin_token', data.token);
-      toast.success('Access Granted', { description: `Logged in as ${data.user.name} (${data.user.role})` });
+      toast.success('Logged In Successfully', { description: `Welcome back, ${data.user.name}!` });
       return true;
     } catch {
-      toast.error('Connection Error', { description: 'Unable to reach authentication server.' });
+      toast.error('Connection Error', { description: 'Unable to connect to server.' });
       return false;
     }
   };
@@ -160,10 +160,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
       setUser(data.user);
-      toast.success('Profile Saved', { description: data.message || 'Your personal telemetry has been updated.' });
+      toast.success('Profile Saved', { description: data.message || 'Your profile has been updated.' });
       return true;
     } catch {
-      toast.error('Network Error', { description: 'Could not connect to authentication gateway.' });
+      toast.error('Network Error', { description: 'Could not connect to server.' });
       return false;
     }
   };
@@ -172,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setToken(null);
     localStorage.removeItem('rovin_token');
-    toast.info('Signed Out', { description: 'Telemetry session concluded.' });
+    toast.info('Signed Out', { description: 'You have been signed out.' });
   };
 
   const refreshProfile = async () => {

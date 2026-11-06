@@ -284,6 +284,8 @@ model SystemSettings {
   bkashMerchantNumber        String?
   nagadMerchantNumber        String?
   maintenanceMode            Boolean  @default(false)
+  fontHeading                String   @default("Plus Jakarta Sans")
+  fontBody                   String   @default("Inter")
   updatedAt                  DateTime @updatedAt
 }
 

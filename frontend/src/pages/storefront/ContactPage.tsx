@@ -7,7 +7,7 @@ import { Phone, Mail, MapPin, Send, MessageSquare, CheckCircle, ShieldCheck } fr
 import { toast } from 'sonner';
 
 export const ContactPage: React.FC = () => {
-  usePageTitle('Contact Command & Support', 'Direct transmission with the ROVIN engineering crew');
+  usePageTitle('Contact Us', 'Get in touch with the ROVIN team');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,9 +32,9 @@ export const ContactPage: React.FC = () => {
       if (!res.ok) throw new Error(data.message || 'Submission failed');
 
       setSubmitted(true);
-      toast.success('Transmission Dispatched', { description: data.message });
+      toast.success('Message Sent', { description: data.message });
     } catch (err: any) {
-      toast.error('Dispatch Error', { description: err.message });
+      toast.error('Error Sending Message', { description: err.message });
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ export const ContactPage: React.FC = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex-1 w-full">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <h1 className="font-orbitron font-black text-3xl sm:text-4xl text-machined-titanium uppercase mb-2">
-            TRANSMIT TO <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">COMMAND</span>
+            CONTACT <span className="text-transparent bg-clip-text bg-gradient-to-r from-nitro-amber to-nitro-orange">ROVIN SUPPORT</span>
           </h1>
           <p className="text-xs sm:text-sm text-machined-muted font-mono">
             Have a question about brushless drift motors, order tracking, or wholesale batches? Connect with our crew.
@@ -59,7 +59,7 @@ export const ContactPage: React.FC = () => {
           <div className="space-y-4">
             <div className="chassis-card p-5 space-y-4">
               <h3 className="font-orbitron font-bold text-xs text-machined-titanium uppercase tracking-wider pb-3 border-b border-fastener-border">
-                Direct Telemetry
+                Contact Information
               </h3>
 
               <div className="flex items-start gap-3">
@@ -79,7 +79,7 @@ export const ContactPage: React.FC = () => {
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-machined-dim uppercase block">Support Frequency</span>
+                  <span className="text-[10px] font-mono text-machined-dim uppercase block">Email Support</span>
                   <a href="mailto:support@rovin.com.bd" className="font-mono text-xs text-machined-silver hover:text-nitro-amber">
                     support@rovin.com.bd
                   </a>
@@ -91,7 +91,7 @@ export const ContactPage: React.FC = () => {
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-machined-dim uppercase block">Hangar & Warehouse</span>
+                  <span className="text-[10px] font-mono text-machined-dim uppercase block">Office & Warehouse</span>
                   <p className="font-mono text-xs text-machined-silver leading-snug">
                     Sector 7, Uttara, Dhaka-1230, Bangladesh
                   </p>
@@ -100,8 +100,8 @@ export const ContactPage: React.FC = () => {
             </div>
 
             <div className="chassis-card p-4 border-nitro-amber/30 text-xs font-mono text-machined-muted">
-              <span className="text-nitro-amber font-bold block mb-1">Response Time Protocol</span>
-              Customer support inquiries and order issues are typically addressed within 2 hours during active hangar hours (10:00 AM - 10:00 PM BST).
+              <span className="text-nitro-amber font-bold block mb-1">Response Time</span>
+              Customer support inquiries and order issues are typically addressed within 2 hours during business hours (10:00 AM - 10:00 PM BST).
             </div>
           </div>
 
@@ -111,10 +111,10 @@ export const ContactPage: React.FC = () => {
               <div className="text-center py-10 space-y-3">
                 <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto" />
                 <h3 className="font-orbitron font-bold text-lg text-machined-titanium uppercase">
-                  Transmission Recorded
+                  Message Received
                 </h3>
                 <p className="text-xs text-machined-muted font-mono max-w-md mx-auto">
-                  Your message has been stored in our command database. A technical specialist will contact you via phone or email shortly.
+                  Your message has been received. Our team will contact you via phone or email shortly.
                 </p>
                 <button
                   onClick={() => {
@@ -123,18 +123,18 @@ export const ContactPage: React.FC = () => {
                   }}
                   className="outline-btn text-xs py-2 px-4 mt-4"
                 >
-                  Send Another Transmission
+                  Send Another Message
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <h2 className="font-orbitron font-bold text-sm text-machined-titanium uppercase tracking-wider pb-3 border-b border-fastener-border">
-                  Submit Direct Inquiry
+                  Send Us a Message
                 </h2>
 
                 <div>
                   <label className="block text-xs font-mono text-machined-muted uppercase mb-1">
-                    Select Transmission Purpose
+                    Select Inquiry Purpose
                   </label>
                   <select
                     value={purpose}

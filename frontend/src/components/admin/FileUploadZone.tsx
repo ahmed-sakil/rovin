@@ -100,7 +100,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
 
       setSelectedMeta(updatedMeta);
       onUploadSuccess(data.url, updatedMeta);
-      toast.success('Media Calibration Complete', {
+      toast.success('File Uploaded Successfully', {
         description: `Uploaded: ${meta.name} (${meta.sizeFormatted} • ${meta.width || 0}×${meta.height || 0}px)`
       });
     } catch (err: any) {
@@ -180,11 +180,11 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="telemetry-tag border-nitro-amber/50 text-nitro-amber font-mono text-[10px]">
-                  ASSET METADATA
+                  FILE DETAILS
                 </span>
                 {selectedMeta.serverUrl && (
                   <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
-                    <CheckCircle className="w-3.5 h-3.5" /> SYNCED
+                    <CheckCircle className="w-3.5 h-3.5" /> UPLOADED
                   </span>
                 )}
               </div>

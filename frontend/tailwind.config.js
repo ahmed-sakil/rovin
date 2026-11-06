@@ -52,8 +52,10 @@ export default {
         }
       },
       fontFamily: {
-        orbitron: ['Orbitron', 'sans-serif'],
-        inter: ['Inter', 'sans-serif'],
+        orbitron: ['var(--font-heading)', 'sans-serif'],
+        heading: ['var(--font-heading)', 'sans-serif'],
+        inter: ['var(--font-body)', 'sans-serif'],
+        sans: ['var(--font-body)', 'sans-serif'],
       },
       boxShadow: {
         'nitro': '0 2px 4px rgba(0, 0, 0, 0.12)',

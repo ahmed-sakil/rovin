@@ -234,7 +234,7 @@ export const RegisterPage: React.FC = () => {
                 <p className="text-[11px] font-mono text-machined-muted leading-tight">
                   I agree to the ROVIN{' '}
                   <Link to="/terms-conditions" target="_blank" className="text-nitro-amber underline" onClick={(e) => e.stopPropagation()}>
-                    Terms of Operation
+                    Terms of Service
                   </Link>{' '}
                   and{' '}
                   <Link to="/privacy-policy" target="_blank" className="text-nitro-amber underline" onClick={(e) => e.stopPropagation()}>
@@ -258,7 +258,7 @@ export const RegisterPage: React.FC = () => {
               <div className="p-3 bg-carbon-elevated border border-nitro-amber/30 rounded text-center">
                 <KeyRound className="w-8 h-8 text-nitro-amber mx-auto mb-1 animate-bounce" />
                 <p className="text-xs font-mono text-machined-silver">
-                  Verification code dispatched to:
+                  Verification code sent to:
                 </p>
                 <p className="font-mono text-xs font-bold text-nitro-amber mt-0.5">
                   {email} / {phone}
@@ -286,7 +286,7 @@ export const RegisterPage: React.FC = () => {
                 disabled={loading}
                 className="nitro-btn w-full text-xs py-3"
               >
-                {loading ? 'Initializing Account...' : 'Complete Registration & Sign In'}
+                {loading ? 'Creating Account...' : 'Complete Registration & Sign In'}
               </button>
 
               <button
@@ -294,13 +294,13 @@ export const RegisterPage: React.FC = () => {
                 onClick={() => setStep(1)}
                 className="w-full text-center text-xs font-mono text-machined-dim hover:text-machined-silver"
               >
-                &larr; Re-edit Coordinates
+                &larr; Edit Details
               </button>
             </form>
           )}
 
           <div className="mt-6 pt-4 border-t border-fastener-border text-center text-xs font-mono text-machined-dim">
-            <span>Already registered callsign? </span>
+            <span>Already have an account? </span>
             <Link
               to={`/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
               className="text-nitro-amber font-bold hover:underline"
@@ -312,7 +312,7 @@ export const RegisterPage: React.FC = () => {
 
         <div className="text-center mt-6 text-[11px] font-mono text-machined-dim">
           <Link to="/" className="hover:text-nitro-amber transition-colors">
-            &larr; Return to Equipment Hangar
+            &larr; Back to Home
           </Link>
         </div>
       </div>

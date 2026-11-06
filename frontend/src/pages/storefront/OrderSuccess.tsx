@@ -8,7 +8,7 @@ import { CheckCircle, Truck, Package, Phone, ArrowRight, ShieldCheck, Home } fro
 
 export const OrderSuccess: React.FC = () => {
   const { orderNumber } = useParams<{ orderNumber: string }>();
-  usePageTitle(`Order #${orderNumber || ''} Confirmed`, 'ROVIN Order Telemetry');
+  usePageTitle(`Order #${orderNumber || ''} Confirmed`, 'Order Confirmation');
   const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
@@ -31,15 +31,15 @@ export const OrderSuccess: React.FC = () => {
           </div>
 
           <span className="telemetry-tag border-emerald-500/40 text-emerald-400 text-xs mb-2">
-            TELEMETRY CONFIRMED &bull; ORDER LOCKED
+            ORDER CONFIRMED
           </span>
 
           <h1 className="font-orbitron font-black text-2xl sm:text-3xl text-machined-titanium uppercase mb-2">
-            ORDER TRANSMISSION RECEIVED
+            ORDER PLACED SUCCESSFULLY
           </h1>
 
           <p className="text-xs text-machined-muted font-mono mb-6">
-            Your high-torque gear has been assigned to our logistics dispatch queue.
+            Thank you for your order! We are preparing it for delivery.
           </p>
 
           <div className="bg-carbon-slate rounded-lg p-5 border border-fastener-border text-left font-mono text-xs space-y-3 mb-6">
@@ -69,10 +69,10 @@ export const OrderSuccess: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link to="/products" className="outline-btn text-xs py-3 flex items-center justify-center gap-2">
-              <Package className="w-4 h-4" /> Explore More Gear
+              <Package className="w-4 h-4" /> Continue Shopping
             </Link>
             <Link to="/" className="nitro-btn text-xs py-3 flex items-center justify-center gap-2">
-              <Home className="w-4 h-4" /> Return to Hangar
+              <Home className="w-4 h-4" /> Back to Home
             </Link>
           </div>
         </div>

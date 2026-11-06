@@ -308,7 +308,7 @@ export const CheckoutPage: React.FC = () => {
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2 telemetry-tag text-emerald-400 border-emerald-500/40">
-            <ShieldCheck className="w-3.5 h-3.5" /> 256-BIT ENCRYPTED
+            <ShieldCheck className="w-3.5 h-3.5" /> 100% SECURE CHECKOUT
           </div>
         </div>
 
@@ -686,7 +686,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center gap-2 pb-3 border-b border-fastener-border">
                 <CreditCard className="w-4 h-4 text-nitro-amber" />
                 <h2 className="font-orbitron font-bold text-xs uppercase tracking-wider text-machined-titanium">
-                  3. Payment Protocol
+                  3. Payment Method
                 </h2>
               </div>
 
@@ -736,7 +736,7 @@ export const CheckoutPage: React.FC = () => {
                     <span className="font-orbitron font-bold text-xs text-orange-400">Nagad</span>
                     {paymentMethod === 'NAGAD' && <CheckCircle className="w-4 h-4 text-orange-400" />}
                   </div>
-                  <p className="text-[11px] font-mono text-machined-muted">Post Office Digital</p>
+                  <p className="text-[11px] font-mono text-machined-muted">Digital Payment Service</p>
                 </button>
               </div>
 
@@ -751,9 +751,9 @@ export const CheckoutPage: React.FC = () => {
 
               {paymentMethod === 'BKASH' && (
                 <div className="p-3.5 bg-pink-500/5 border border-pink-500/30 rounded text-xs font-mono text-pink-200">
-                  <p className="font-bold text-pink-400 mb-1">bKash Merchant Payment Guide:</p>
+                  <p className="font-bold text-pink-400 mb-1">bKash Payment Guide:</p>
                   <p className="text-machined-silver">
-                    Please send <strong>৳{finalTotal.toLocaleString()}</strong> to Merchant Account:{' '}
+                    Please send <strong>৳{finalTotal.toLocaleString()}</strong> to Personal Number (Send Money):{' '}
                     <span className="text-pink-400 font-bold">{bkashMerchant}</span>. Keep the TrxID handy.
                   </p>
                 </div>
@@ -761,9 +761,9 @@ export const CheckoutPage: React.FC = () => {
 
               {paymentMethod === 'NAGAD' && (
                 <div className="p-3.5 bg-orange-500/5 border border-orange-500/30 rounded text-xs font-mono text-orange-200">
-                  <p className="font-bold text-orange-400 mb-1">Nagad Merchant Payment Guide:</p>
+                  <p className="font-bold text-orange-400 mb-1">Nagad Payment Guide:</p>
                   <p className="text-machined-silver">
-                    Please send <strong>৳{finalTotal.toLocaleString()}</strong> to Merchant Account:{' '}
+                    Please send <strong>৳{finalTotal.toLocaleString()}</strong> to Personal Number (Send Money):{' '}
                     <span className="text-orange-400 font-bold">{nagadMerchant}</span>. Keep the TrxID handy.
                   </p>
                 </div>

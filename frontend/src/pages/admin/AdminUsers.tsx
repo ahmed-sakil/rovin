@@ -54,7 +54,7 @@ interface AuditLog {
 }
 
 export const AdminUsers: React.FC = () => {
-  usePageTitle('Security Audit & Pilot Roster', 'Admin Command Center');
+  usePageTitle('Users & Security', 'Manage user accounts, suspensions, warnings, and security logs');
 
   const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -180,7 +180,7 @@ export const AdminUsers: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      toast.success('Clearance Restored', { description: data.message });
+      toast.success('Account Restored', { description: data.message });
       fetchUsers();
     } catch (err: any) {
       toast.error('Action Failed', { description: err.message });
@@ -209,13 +209,13 @@ export const AdminUsers: React.FC = () => {
       if (data.autoBanned) {
         toast.error('Auto-Suspension Enforced', { description: data.message });
       } else {
-        toast.warning('Disciplinary Strike Imposed', { description: data.message });
+        toast.warning('Account Warning Issued', { description: data.message });
       }
       setShowStrikeModal(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (err: any) {
-      toast.error('Strike Protocol Failed', { description: err.message });
+      toast.error('Action Failed', { description: err.message });
     } finally {
       setActionLoading(false);
     }
@@ -223,15 +223,15 @@ export const AdminUsers: React.FC = () => {
 
   return (
     <AdminLayout
-      title="Security & Pilots"
-      comment="Audit security access, enforce anti-abuse suspensions, and issue disciplinary strikes."
+      title="Users & Security"
+      comment="Manage user accounts, suspensions, warnings, and security logs."
     >
       <div className="space-y-6">
-        {/* Telemetry Stat Cards */}
+        {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="chassis-card p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-xs text-machined-dim uppercase tracking-wider">Total Registered Pilots</span>
+              <span className="font-mono text-xs text-machined-dim uppercase tracking-wider">Total Registered Users</span>
               <UserCheck className="w-5 h-5 text-nitro-amber" />
             </div>
             <div className="font-orbitron font-black text-2xl text-machined-titanium">
@@ -241,7 +241,7 @@ export const AdminUsers: React.FC = () => {
 
           <div className="chassis-card p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-xs text-machined-dim uppercase tracking-wider">Active Flight Clearance</span>
+              <span className="font-mono text-xs text-machined-dim uppercase tracking-wider">Active Accounts</span>
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="font-orbitron font-black text-2xl text-emerald-400">
@@ -251,13 +251,13 @@ export const AdminUsers: React.FC = () => {
 
           <div className="chassis-card p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-xs text-machined-dim uppercase tracking-wider">Disciplinary Strikes</span>
+              <span className="font-mono text-xs text-machined-dim uppercase tracking-wider">Account Warnings</span>
               <AlertTriangle className="w-5 h-5 text-yellow-400" />
             </div>
             <div className="font-orbitron font-black text-2xl text-yellow-400">
               {stats.striked}
             </div>
-            <span className="text-[10px] font-mono text-machined-dim">3 strikes = auto-suspend</span>
+            <span className="text-[10px] font-mono text-machined-dim">3 warnings = auto-suspend</span>
           </div>
 
           <div className="chassis-card p-5">
@@ -281,7 +281,7 @@ export const AdminUsers: React.FC = () => {
                 : 'border-transparent text-machined-dim hover:text-machined-titanium'
             }`}
           >
-            <UserCheck className="w-4 h-4" /> Pilot Roster & Moderation
+            <UserCheck className="w-4 h-4" /> User Accounts
           </button>
           <button
             onClick={() => setActiveTab('audit')}
@@ -306,7 +306,7 @@ export const AdminUsers: React.FC = () => {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search pilot by callsign, email, phone..."
+                  placeholder="Search users by name, email, phone..."
                   className="w-full bg-carbon-elevated border border-fastener-border rounded pl-9 pr-3 py-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                 />
               </div>
@@ -330,7 +330,7 @@ export const AdminUsers: React.FC = () => {
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="ACTIVE">Active Only</option>
-                  <option value="STRIKED">Striked Warnings</option>
+                  <option value="STRIKED">With Warnings</option>
                   <option value="BANNED">Suspended / Banned</option>
                 </select>
               </div>
@@ -342,26 +342,26 @@ export const AdminUsers: React.FC = () => {
                 <table className="w-full text-left text-xs font-mono">
                   <thead className="bg-carbon-slate border-b border-fastener-border text-machined-dim uppercase">
                     <tr>
-                      <th className="py-3 px-4">Pilot Callsign</th>
+                      <th className="py-3 px-4">User</th>
                       <th className="py-3 px-4">Role</th>
-                      <th className="py-3 px-4">Clearance Status</th>
-                      <th className="py-3 px-4">Strikes</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Warnings</th>
                       <th className="py-3 px-4">Orders & Lifetime</th>
                       <th className="py-3 px-4">Joined</th>
-                      <th className="py-3 px-4 text-right">Disciplinary Actions</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-fastener-border">
                     {loading ? (
                       <tr>
                         <td colSpan={7} className="py-12 text-center text-machined-dim">
-                          Ingesting pilot telemetry...
+                          Loading users...
                         </td>
                       </tr>
                     ) : users.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-12 text-center text-machined-dim">
-                          No pilots matching search criteria.
+                          No users matching search criteria.
                         </td>
                       </tr>
                     ) : (
@@ -424,7 +424,7 @@ export const AdminUsers: React.FC = () => {
                                 ৳{u.lifetimeSpent.toLocaleString()}
                               </span>
                               <span className="text-[10px] text-machined-dim">
-                                {u.orderCount} missions confirmed
+                                {u.orderCount} orders placed
                               </span>
                             </div>
                           </td>
@@ -441,7 +441,7 @@ export const AdminUsers: React.FC = () => {
                                 }}
                                 disabled={u.role === 'ADMIN'}
                                 className="p-1.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 disabled:opacity-30"
-                                title="Issue Disciplinary Strike"
+                                title="Issue Warning"
                               >
                                 <Gavel className="w-3.5 h-3.5" />
                               </button>
@@ -489,7 +489,7 @@ export const AdminUsers: React.FC = () => {
                   type="text"
                   value={logSearch}
                   onChange={(e) => setLogSearch(e.target.value)}
-                  placeholder="Filter logs by IP, action, pilot..."
+                  placeholder="Filter logs by IP, action, user..."
                   className="w-full bg-carbon-elevated border border-fastener-border rounded pl-9 pr-3 py-2 text-xs text-machined-titanium font-mono focus:border-nitro-amber outline-none"
                 />
               </div>
@@ -516,8 +516,8 @@ export const AdminUsers: React.FC = () => {
                   <thead className="bg-carbon-slate border-b border-fastener-border text-machined-dim uppercase">
                     <tr>
                       <th className="py-3 px-4">Timestamp</th>
-                      <th className="py-3 px-4">Action Protocol</th>
-                      <th className="py-3 px-4">Target Pilot</th>
+                      <th className="py-3 px-4">Action</th>
+                      <th className="py-3 px-4">User</th>
                       <th className="py-3 px-4">IP Address</th>
                       <th className="py-3 px-4">Metadata / Details</th>
                     </tr>
@@ -526,13 +526,13 @@ export const AdminUsers: React.FC = () => {
                     {loadingLogs ? (
                       <tr>
                         <td colSpan={5} className="py-12 text-center text-machined-dim">
-                          Ingesting security telemetry stream...
+                          Loading activity logs...
                         </td>
                       </tr>
                     ) : logs.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="py-12 text-center text-machined-dim">
-                          No audit telemetry recorded for this filter.
+                          No activity recorded for this filter.
                         </td>
                       </tr>
                     ) : (
@@ -592,12 +592,12 @@ export const AdminUsers: React.FC = () => {
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-fastener-border text-red-400">
               <Ban className="w-5 h-5" />
               <h3 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-                Suspend Pilot Clearance
+                Suspend User Account
               </h3>
             </div>
 
             <p className="text-xs font-mono text-machined-muted mb-4">
-              Suspending pilot <strong>{selectedUser.name}</strong> ({selectedUser.phone}) will invalidate access and prevent order placements.
+              Suspending user <strong>{selectedUser.name}</strong> ({selectedUser.phone}) will prevent account access and order placement.
             </p>
 
             <div className="space-y-4">
@@ -658,22 +658,22 @@ export const AdminUsers: React.FC = () => {
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-fastener-border text-yellow-400">
               <Gavel className="w-5 h-5" />
               <h3 className="font-orbitron font-bold text-base text-machined-titanium uppercase">
-                Issue Disciplinary Strike
+                Issue Account Warning
               </h3>
             </div>
 
             <p className="text-xs font-mono text-machined-muted mb-4">
-              Current Strike Level for <strong>{selectedUser.name}</strong>: <strong>{selectedUser.strikeCount}/3</strong>.
+              Current warnings for <strong>{selectedUser.name}</strong>: <strong>{selectedUser.strikeCount}/3</strong>.
               <br />
               <span className="text-yellow-400">
-                Notice: Reaching strike #3 triggers an automated 7-day suspension.
+                Notice: Receiving 3 warnings triggers an automated 7-day suspension.
               </span>
             </p>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-[11px] font-mono uppercase text-machined-dim mb-1">
-                  Infraction Note
+                  Warning Reason / Note
                 </label>
                 <input
                   type="text"
@@ -697,7 +697,7 @@ export const AdminUsers: React.FC = () => {
                   disabled={actionLoading}
                   className="nitro-btn text-xs py-2 px-5 bg-yellow-500 hover:bg-yellow-600 text-pitch-obsidian font-bold"
                 >
-                  {actionLoading ? 'Recording...' : 'Impose Strike'}
+                  {actionLoading ? 'Saving...' : 'Issue Warning'}
                 </button>
               </div>
             </div>

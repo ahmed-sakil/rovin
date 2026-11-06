@@ -124,7 +124,7 @@ export const CmsPage: React.FC<{ slugOverride?: string }> = ({ slugOverride }) =
   const [page, setPage] = useState<{ title: string; content: string; updatedAt: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  usePageTitle(page?.title || 'Policy & Telemetry', 'ROVIN Platform');
+  usePageTitle(page?.title || 'Information & Policies', 'ROVIN');
 
   useEffect(() => {
     const fetchPage = async () => {

@@ -23,7 +23,7 @@ import {
 
 interface AdminLayoutProps {
   title: string;
-  comment: string;
+  comment?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -42,9 +42,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const navItems = [
     { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, exact: true },
     { label: 'Products & Stock', to: '/admin/products', icon: Boxes },
-    { label: 'Dynamic Categories', to: '/admin/categories', icon: FolderTree },
+    { label: 'Categories', to: '/admin/categories', icon: FolderTree },
     { label: 'Orders & Courier', to: '/admin/orders', icon: ShoppingBag },
-    { label: 'Security & Users', to: '/admin/users', icon: ShieldAlert },
+    { label: 'Users & Security', to: '/admin/users', icon: ShieldAlert },
     { label: 'System Settings', to: '/admin/settings', icon: Sliders },
   ];
 
@@ -85,7 +85,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                   ROVIN
                 </span>
                 <span className="text-[10px] font-mono tracking-widest block text-nitro-amber mt-1">
-                  COMMAND CENTER
+                  ADMIN CONTROL
                 </span>
               </div>
             </Link>
@@ -194,9 +194,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 {title}
               </h1>
             </div>
-            <p className="text-xs text-machined-muted font-mono mt-1">
-              {comment}
-            </p>
+            {comment && (
+              <p className="text-xs text-machined-muted font-mono mt-1">
+                {comment}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
